@@ -263,10 +263,6 @@ const filteredCallLogsData = sortData(
   const visibleRatingsData = showMoreRatings ? filteredRatingsData : filteredRatingsData.slice(0, 5)
   const visibleCallLogsData = showMoreCallLogs ? filteredCallLogsData : filteredCallLogsData.slice(0, 5)
 
-  const sectionStyle = "overflow-hidden border-none bg-white shadow-sm"
-  const headerStyle = "flex items-center justify-between border-b p-4"
-  const buttonStyle = "flex items-center gap-2 rounded-full text-white hover:bg-opacity-90"
-
   return (
     <div className={`flex h-screen bg-gray-100 ${montserrat.className}`}>
       <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
