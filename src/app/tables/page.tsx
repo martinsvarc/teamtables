@@ -562,6 +562,55 @@ const filteredCallLogsData = sortData(
           day_selected: "bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600",
         }}
       />
+{/* Quick selection buttons */}
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(7)}>
+          This Week
+        </Button>
+        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(14)}>
+          Last Week
+        </Button>
+        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(7)}>
+          Last 7 Days
+        </Button>
+        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(30)}>
+          This Month
+        </Button>
+        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(14)}>
+          Last 14 Days
+        </Button>
+        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(30)}>
+          Last 30 Days
+        </Button>
+      </div>
+    </div>
+  </PopoverContent>
+</Popover>
+<DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
+      <ArrowUpDown className="h-4 w-4" />
+      Sort
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent align="end" className="w-56">
+    <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'standard', direction: 'asc' })}>
+      Standard sorting
+    </DropdownMenuItem>
+    <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'name', direction: 'asc' })}>
+      Users (A-Z)
+    </DropdownMenuItem>
+    <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'name', direction: 'desc' })}>
+      Users (Z-A)
+    </DropdownMenuItem>
+    <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'date', direction: 'desc' })}>
+      Date (newest first)
+    </DropdownMenuItem>
+    <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'date', direction: 'asc' })}>
+      Date (oldest first)
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
       
       {/* Quick selection buttons */}
       <div className="grid grid-cols-2 gap-2 mt-4">
