@@ -33,6 +33,9 @@ import { Montserrat } from 'next/font/google'
 
 const montserratFont = Montserrat({ subsets: ['latin'] })
 
+type SortDirection = 'asc' | 'desc';
+type SortType = 'standard' | 'name' | 'consistency' | 'effectiveness' | 'date';
+
 // Constants
 const sectionStyle = "overflow-hidden border-none bg-white shadow-sm"
 const headerStyle = "flex items-center justify-between border-b p-4"
