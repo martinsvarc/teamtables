@@ -6,14 +6,18 @@ import Component from "./component";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: { memberId: string };
+  searchParams: { memberId: string; teamId: string };
 }) {
-  const memberId = searchParams.memberId;
-
-  if (!memberId) {
-    return <div>Member ID is required</div>;
+  if (!searchParams.memberId || !searchParams.teamId) {
+    return <div>Member ID and Team ID are required</div>;
   }
 
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Component />
+    </Suspense>
+  );
+}
   try {
     // Get user stats
     const { rows: stats } = await sql`
