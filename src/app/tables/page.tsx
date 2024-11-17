@@ -33,6 +33,9 @@ const montserrat = Montserrat({ subsets: ['latin'] })
 function ScoreCell({ score, description, title, color }: { score: number; description: string; title: string; color: string }) {
   const [isHovered, setIsHovered] = useState(false)
 
+  function ScoreCell({ score, description, title, color }: { score: number; description: string; title: string; color: string }) {
+  const [isHovered, setIsHovered] = useState(false)
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -47,7 +50,7 @@ function ScoreCell({ score, description, title, color }: { score: number; descri
           </span>
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-4">
+      <PopoverContent className="w-[300px] p-4 bg-white shadow-md rounded-md border">
         <div className="grid gap-2">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">{title}</h3>
