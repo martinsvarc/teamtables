@@ -33,9 +33,6 @@ const montserrat = Montserrat({ subsets: ['latin'] })
 function ScoreCell({ score, description, title, color }: { score: number; description: string; title: string; color: string }) {
   const [isHovered, setIsHovered] = useState(false)
 
-  function ScoreCell({ score, description, title, color }: { score: number; description: string; title: string; color: string }) {
-  const [isHovered, setIsHovered] = useState(false)
-
   return (
     <Popover>
       <PopoverTrigger asChild>
