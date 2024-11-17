@@ -415,56 +415,53 @@ const filterData = (data: DataItem[], query: string) => {
                 </div>
                 <div className="flex gap-2">
                   <Popover>
-                    <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
-                        <CalendarIcon className="h-4 w-4" />
-                        <PopoverTrigger asChild>
-  <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
-    <CalendarIcon className="h-4 w-4" />
-    {formatDateRange(date)}
-  </Button>
-</PopoverTrigger>
-<PopoverContent className="w-[500px] p-0 bg-white shadow-md rounded-md border" align="start">
-  <div className="p-2 border-b bg-white">
-    <Button
-      variant="ghost"
-      className="w-full justify-start font-normal text-base"
-      onClick={() => setDate(undefined)}
-    >
-      All time
+  <PopoverTrigger asChild>
+    <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
+      <CalendarIcon className="h-4 w-4" />
+      {formatDateRange(date)}
     </Button>
-  </div>
-  <div className="p-2 bg-white">
-    <div className="flex space-x-2">
-      <Calendar
-        mode="single"
-        selected={date}
-        onSelect={setDate}
-        className="w-full bg-white"
-        numberOfMonths={2}
-        showOutsideDays={false}
-        classNames={{
-          months: "flex space-x-2",
-          head_cell: "text-muted-foreground font-normal text-sm",
-          cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-          day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
-          day_selected: "bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600",
-          day_outside: "text-muted-foreground opacity-50",
-          nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
-        }}
-      />
+  </PopoverTrigger>
+  <PopoverContent className="w-[500px] p-0 bg-white shadow-md rounded-md border" align="start">
+    <div className="p-2 border-b bg-white">
+      <Button
+        variant="ghost"
+        className="w-full justify-start font-normal text-base"
+        onClick={() => setDate(undefined)}
+      >
+        All time
+      </Button>
     </div>
-    <div className="grid grid-cols-2 gap-2 mt-4">
-      <Button variant="outline" className="w-full justify-center">This Week</Button>
-      <Button variant="outline" className="w-full justify-center">Last Week</Button>
-      <Button variant="outline" className="w-full justify-center">Last 7 Days</Button>
-      <Button variant="outline" className="w-full justify-center">This Month</Button>
-      <Button variant="outline" className="w-full justify-center">Last 14 Days</Button>
-      <Button variant="outline" className="w-full justify-center">Last 30 Days</Button>
+    <div className="p-2 bg-white">
+      <div className="flex space-x-2">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={setDate}
+          className="w-full bg-white"
+          numberOfMonths={2}
+          showOutsideDays={false}
+          classNames={{
+            months: "flex space-x-2",
+            head_cell: "text-muted-foreground font-normal text-sm",
+            cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+            day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
+            day_selected: "bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600",
+            day_outside: "text-muted-foreground opacity-50",
+            nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+          }}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        <Button variant="outline" className="w-full justify-center">This Week</Button>
+        <Button variant="outline" className="w-full justify-center">Last Week</Button>
+        <Button variant="outline" className="w-full justify-center">Last 7 Days</Button>
+        <Button variant="outline" className="w-full justify-center">This Month</Button>
+        <Button variant="outline" className="w-full justify-center">Last 14 Days</Button>
+        <Button variant="outline" className="w-full justify-center">Last 30 Days</Button>
+      </div>
     </div>
-  </div>
-</PopoverContent>
-                  </Popover>
+  </PopoverContent>
+</Popover>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
