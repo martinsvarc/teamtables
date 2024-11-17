@@ -31,9 +31,26 @@ import { Slider } from "@/components/ui/slider"
 
 const montserrat = Montserrat({ subsets: ['latin'] })
 
+// Constants
 const sectionStyle = "overflow-hidden border-none bg-white shadow-sm"
 const headerStyle = "flex items-center justify-between border-b p-4"
 const buttonStyle = "flex items-center gap-2 rounded-full text-white hover:bg-opacity-90"
+
+// Types
+type SortDirection = 'asc' | 'desc'
+type SortType = 'standard' | 'name' | 'consistency' | 'effectiveness' | 'date'
+
+interface ScoreCellProps {
+  score: number
+  description: string
+  title: string
+  color: string
+}
+
+interface AudioPlayerProps {
+  audioSrc: string
+  caller: string
+}
 
 // Helper Functions
 const filterData = <T extends { name: string }>(data: T[], searchTerm: string): T[] => {
@@ -43,9 +60,6 @@ const filterData = <T extends { name: string }>(data: T[], searchTerm: string): 
     item.name.toLowerCase().includes(lowercaseSearch)
   )
 }
-
-type SortDirection = 'asc' | 'desc'
-type SortType = 'standard' | 'name' | 'consistency' | 'effectiveness' | 'date'
 
 const sortData = <T extends Record<string, any>>(
   data: T[],
@@ -102,9 +116,8 @@ const formatDateRange = (dateRange: DateRange | undefined) => {
   
   return `${from.toLocaleDateString()} - ${to.toLocaleDateString()}`
 }
-
-// Components
-function ScoreCell({ score, description, title, color }: { score: number; description: string; title: string; color: string }) {
+// Sub-components
+const ScoreCell: React.FC<ScoreCellProps> = ({ score, description, title, color }) => {
   const [isHovered, setIsHovered] = useState(false)
 
   return (
@@ -134,7 +147,7 @@ function ScoreCell({ score, description, title, color }: { score: number; descri
   )
 }
 
-function AudioPlayer({ audioSrc, caller }: { audioSrc: string; caller: string }) {
+const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioSrc, caller }) => {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -211,7 +224,30 @@ function AudioPlayer({ audioSrc, caller }: { audioSrc: string; caller: string })
   )
 }
 
-// Main Component
+// Sample Data Arrays
+const activityData = [
+  { name: "Sarah Johnson", avatar: "SJ", trainingsToday: 3, thisWeek: 15, thisMonth: 45, total: 180, currentStreak: 7, longestStreak: 15, consistency: 85 },
+  { name: "Michael Chen", avatar: "MC", trainingsToday: 4, thisWeek: 18, thisMonth: 52, total: 195, currentStreak: 9, longestStreak: 18, consistency: 92 },
+  { name: "Emma Davis", avatar: "ED", trainingsToday: 2, thisWeek: 12, thisMonth: 38, total: 165, currentStreak: 5, longestStreak: 12, consistency: 78 },
+  { name: "James Wilson", avatar: "JW", trainingsToday: 5, thisWeek: 19, thisMonth: 55, total: 198, currentStreak: 10, longestStreak: 20, consistency: 95 },
+  { name: "Olivia Brown", avatar: "OB", trainingsToday: 3, thisWeek: 14, thisMonth: 42, total: 175, currentStreak: 6, longestStreak: 14, consistency: 82 },
+]
+
+const ratingsData = [
+  { name: "Sarah Johnson", avatar: "SJ", overall: 85, engagement: 87, objection: 83, information: 86, program: 84, closing: 82, effectiveness: 85 },
+  { name: "Michael Chen", avatar: "MC", overall: 92, engagement: 93, objection: 90, information: 94, program: 91, closing: 89, effectiveness: 92 },
+  { name: "Emma Davis", avatar: "ED", overall: 78, engagement: 80, objection: 77, information: 79, program: 76, closing: 75, effectiveness: 78 },
+  { name: "James Wilson", avatar: "JW", overall: 95, engagement: 96, objection: 94, information: 95, program: 93, closing: 92, effectiveness: 95 },
+  { name: "Olivia Brown", avatar: "OB", overall: 82, engagement: 84, objection: 81, information: 83, program: 80, closing: 79, effectiveness: 82 },
+]
+
+const callLogsData = [
+  { name: "David Anderson", avatar: "DA", date: "11/13/2024", caller: "Mike", callerAvatar: "M", audioSrc: "/sample-audio.mp3", performance: 88, engagement: 90, objection: 85, information: 89, program: 87, closing: 86, effectiveness: 88 },
+  { name: "Megan Taylor", avatar: "MT", date: "11/13/2024", caller: "Tison", callerAvatar: "T", audioSrc: "/sample-audio.mp3", performance: 92, engagement: 93, objection: 90, information: 94, program: 91, closing: 89, effectiveness: 92 },
+  { name: "Sarah Williams", avatar: "SW", date: "11/14/2024", caller: "Chris", callerAvatar: "C", audioSrc: "/sample-audio.mp3", performance: 85, engagement: 87, objection: 83, information: 86, program: 84, closing: 82, effectiveness: 85 },
+  { name: "John Martinez", avatar: "JM", date: "11/14/2024", caller: "Peter", callerAvatar: "P", audioSrc: "/sample-audio.mp3", performance: 95, engagement: 96, objection: 94, information: 95, program: 93, closing: 92, effectiveness: 95 },
+  { name: "Emma Thompson", avatar: "ET", date: "11/15/2024", caller: "Steve", callerAvatar: "S", audioSrc: "/sample-audio.mp3", performance: 89, engagement: 91, objection: 87, information: 90, program: 88, closing: 86, effectiveness: 89 },
+]
 const Component = () => {
   // State declarations
   const [showMoreActivity, setShowMoreActivity] = useState(false)
@@ -223,6 +259,8 @@ const Component = () => {
   const [ratingsSearch, setRatingsSearch] = useState("")
   const [callLogsSearch, setCallLogsSearch] = useState("")
   const [selectedAudio, setSelectedAudio] = useState<{ src: string; caller: string } | null>(null)
+
+  // Sort states
   const [activitySort, setActivitySort] = useState<{ type: SortType; direction: SortDirection }>({
     type: 'standard',
     direction: 'asc'
@@ -236,7 +274,7 @@ const Component = () => {
     direction: 'asc'
   })
 
-  // Handlers
+  // Handler functions
   const handleQuickSelection = (days: number) => {
     const to = new Date()
     const from = new Date()
@@ -244,7 +282,7 @@ const Component = () => {
     setDate({ from, to })
   }
 
-  // Data filtering and sorting
+  // Filtered data
   const filteredActivityData = sortData(
     filterData(activityData, activitySearch),
     activitySort.type,
@@ -263,6 +301,7 @@ const Component = () => {
     callLogsSort.direction
   )
 
+  // Visible data
   const visibleActivityData = showMoreActivity ? filteredActivityData : filteredActivityData.slice(0, 5)
   const visibleRatingsData = showMoreRatings ? filteredRatingsData : filteredRatingsData.slice(0, 5)
   const visibleCallLogsData = showMoreCallLogs ? filteredCallLogsData : filteredCallLogsData.slice(0, 5)
@@ -300,11 +339,10 @@ const Component = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Main Content */}
       <div className="flex-1 overflow-auto p-4 font-medium">
         <ScrollArea className="h-full">
           <div className="space-y-4">
-            {/* Activity View */}
+{/* Activity View */}
             <Card className={sectionStyle}>
               <div className={headerStyle}>
                 <div className="flex items-center gap-2 text-[#556bc7]">
@@ -339,8 +377,7 @@ const Component = () => {
                   </DropdownMenu>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-<Button size="sm" className={`${buttonStyle} bg-[#556bc7]`}>
+                      <Button size="sm" className={`${buttonStyle} bg-[#556bc7]`}>
                         <Search className="h-4 w-4" />
                         Search
                       </Button>
@@ -400,8 +437,7 @@ const Component = () => {
                 </button>
               </div>
             </Card>
-
-            {/* Ratings View */}
+{/* Ratings View */}
             <Card className={sectionStyle}>
               <div className={headerStyle}>
                 <div className="flex items-center gap-2 text-[#51c1a9]">
@@ -510,8 +546,7 @@ const Component = () => {
                 </button>
               </div>
             </Card>
-
-            {/* Call Logs */}
+{/* Call Logs */}
             <Card className={sectionStyle}>
               <div className={headerStyle}>
                 <div className="flex items-center gap-2 text-[#fbb350]">
@@ -609,8 +644,7 @@ const Component = () => {
 
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${button
-<Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
+                      <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
                         <Search className="h-4 w-4" />
                         Search
                       </Button>
@@ -709,36 +743,11 @@ const Component = () => {
                 </button>
               </div>
             </Card>
-          </div>
+</div>
         </ScrollArea>
       </div>
     </div>
   )
 }
-
-// Sample Data
-const activityData = [
-  { name: "Sarah Johnson", avatar: "SJ", trainingsToday: 3, thisWeek: 15, thisMonth: 45, total: 180, currentStreak: 7, longestStreak: 15, consistency: 85 },
-  { name: "Michael Chen", avatar: "MC", trainingsToday: 4, thisWeek: 18, thisMonth: 52, total: 195, currentStreak: 9, longestStreak: 18, consistency: 92 },
-  { name: "Emma Davis", avatar: "ED", trainingsToday: 2, thisWeek: 12, thisMonth: 38, total: 165, currentStreak: 5, longestStreak: 12, consistency: 78 },
-  { name: "James Wilson", avatar: "JW", trainingsToday: 5, thisWeek: 19, thisMonth: 55, total: 198, currentStreak: 10, longestStreak: 20, consistency: 95 },
-  { name: "Olivia Brown", avatar: "OB", trainingsToday: 3, thisWeek: 14, thisMonth: 42, total: 175, currentStreak: 6, longestStreak: 14, consistency: 82 },
-]
-
-const ratingsData = [
-  { name: "Sarah Johnson", avatar: "SJ", overall: 85, engagement: 87, objection: 83, information: 86, program: 84, closing: 82, effectiveness: 85 },
-  { name: "Michael Chen", avatar: "MC", overall: 92, engagement: 93, objection: 90, information: 94, program: 91, closing: 89, effectiveness: 92 },
-  { name: "Emma Davis", avatar: "ED", overall: 78, engagement: 80, objection: 77, information: 79, program: 76, closing: 75, effectiveness: 78 },
-  { name: "James Wilson", avatar: "JW", overall: 95, engagement: 96, objection: 94, information: 95, program: 93, closing: 92, effectiveness: 95 },
-  { name: "Olivia Brown", avatar: "OB", overall: 82, engagement: 84, objection: 81, information: 83, program: 80, closing: 79, effectiveness: 82 },
-]
-
-const callLogsData = [
-  { name: "David Anderson", avatar: "DA", date: "11/13/2024", caller: "Mike", callerAvatar: "M", audioSrc: "/sample-audio.mp3", performance: 88, engagement: 90, objection: 85, information: 89, program: 87, closing: 86, effectiveness: 88 },
-  { name: "Megan Taylor", avatar: "MT", date: "11/13/2024", caller: "Tison", callerAvatar: "T", audioSrc: "/sample-audio.mp3", performance: 92, engagement: 93, objection: 90, information: 94, program: 91, closing: 89, effectiveness: 92 },
-  { name: "Sarah Williams", avatar: "SW", date: "11/14/2024", caller: "Chris", callerAvatar: "C", audioSrc: "/sample-audio.mp3", performance: 85, engagement: 87, objection: 83, information: 86, program: 84, closing: 82, effectiveness: 85 },
-  { name: "John Martinez", avatar: "JM", date: "11/14/2024", caller: "Peter", callerAvatar: "P", audioSrc: "/sample-audio.mp3", performance: 95, engagement: 96, objection: 94, information: 95, program: 93, closing: 92, effectiveness: 95 },
-  { name: "Emma Thompson", avatar: "ET", date: "11/15/2024", caller: "Steve", callerAvatar: "S", audioSrc: "/sample-audio.mp3", performance: 89, engagement: 91, objection: 87, information: 90, program: 88, closing: 86, effectiveness: 89 },
-]
 
 export default Component
