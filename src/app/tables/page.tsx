@@ -313,7 +313,7 @@ const filteredCallLogsData = sortData(
                         Sort
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-56">
   <DropdownMenuItem onClick={() => setActivitySort({ type: 'standard', direction: 'asc' })}>
     Standard sorting
   </DropdownMenuItem>
@@ -330,9 +330,6 @@ const filteredCallLogsData = sortData(
     Consistency (lowest first)
   </DropdownMenuItem>
 </DropdownMenuContent>
-                      <DropdownMenuItem>Consistency (highest first)</DropdownMenuItem>
-                      <DropdownMenuItem>Consistency (lowest first)</DropdownMenuItem>
-                    </DropdownMenuContent>
                   </DropdownMenu>
                   <Popover>
                     <PopoverTrigger asChild>
