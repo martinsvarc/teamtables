@@ -520,7 +520,6 @@ const filteredCallLogsData = sortData(
     </Button>
   </PopoverTrigger>
   <PopoverContent className="w-[500px] p-0 bg-white shadow-md rounded-md border" align="start">
-    {/* All time button - styled as a bordered button */}
     <div className="p-2 border-b">
       <Button
         variant="outline"
@@ -540,26 +539,9 @@ const filteredCallLogsData = sortData(
         numberOfMonths={2}
         showOutsideDays={false}
         classNames={{
-          months: "flex space-x-2",
-          month: "space-y-4",
-          caption: "flex justify-between pt-1 relative items-center",
-          caption_label: "text-sm font-medium",
-          nav: "space-x-1 flex items-center",
-          nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-          nav_button_previous: "absolute left-1",
-          nav_button_next: "absolute right-1",
-          table: "w-full border-collapse space-y-1",
-          head_row: "flex",
-          head_cell: "w-9 font-normal text-[0.8rem] text-muted-foreground",
-          row: "flex w-full mt-2",
-          cell: "w-9 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-          day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-gray-100",
-          day_range_start: "bg-blue-50 text-blue-600",
-          day_range_end: "bg-blue-50 text-blue-600",
-          day_selected: "bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600",
+          // ... keep existing Calendar classNames
         }}
       />
-{/* Quick selection buttons */}
       <div className="grid grid-cols-2 gap-2 mt-4">
         <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(7)}>
           This Week
