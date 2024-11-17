@@ -31,6 +31,14 @@ import { Slider } from "@/components/ui/slider"
 
 const montserrat = Montserrat({ subsets: ['latin'] })
 
+const filterData = <T extends { name: string }>(data: T[], searchTerm: string): T[] => {
+  if (!searchTerm) return data
+  const lowercaseSearch = searchTerm.toLowerCase()
+  return data.filter(item => 
+    item.name.toLowerCase().includes(lowercaseSearch)
+  )
+}
+
 function ScoreCell({ score, description, title, color }: { score: number; description: string; title: string; color: string }) {
   const [isHovered, setIsHovered] = useState(false)
 
