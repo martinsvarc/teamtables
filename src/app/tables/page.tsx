@@ -402,34 +402,31 @@ const filteredCallLogsData = sortData(
                   <h2 className="text-lg font-extrabold">Ratings Team's View</h2>
                 </div>
                 <div className="flex gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-[#51c1a9]`}>
-                        <ArrowUpDown className="h-4 w-4" />
-                        Sort
-                      </Button>
-                    </DropdownMenuTrigger>
-                   <DropdownMenuContent align="end" className="w-56">
-  <DropdownMenuItem onClick={() => setRatingsSort({ type: 'standard', direction: 'asc' })}>
-    Standard sorting
-  </DropdownMenuItem>
-  <DropdownMenuItem onClick={() => setRatingsSort({ type: 'name', direction: 'asc' })}>
-    Users (A-Z)
-  </DropdownMenuItem>
-  <DropdownMenuItem onClick={() => setRatingsSort({ type: 'name', direction: 'desc' })}>
-    Users (Z-A)
-  </DropdownMenuItem>
-  <DropdownMenuItem onClick={() => setRatingsSort({ type: 'effectiveness', direction: 'desc' })}>
-    Overall Effectiveness (highest first)
-  </DropdownMenuItem>
-  <DropdownMenuItem onClick={() => setRatingsSort({ type: 'effectiveness', direction: 'asc' })}>
-    Overall Effectiveness (lowest first)
-  </DropdownMenuItem>
-</DropdownMenuContent>
-                      <DropdownMenuItem>Overall Effectiveness (highest first)</DropdownMenuItem>
-                      <DropdownMenuItem>Overall Effectiveness (lowest first)</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                 <DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button size="sm" className={`${buttonStyle} bg-[#51c1a9]`}>
+      <ArrowUpDown className="h-4 w-4" />
+      Sort
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent align="end" className="w-56">
+    <DropdownMenuItem onClick={() => setRatingsSort({ type: 'standard', direction: 'asc' })}>
+      Standard sorting
+    </DropdownMenuItem>
+    <DropdownMenuItem onClick={() => setRatingsSort({ type: 'name', direction: 'asc' })}>
+      Users (A-Z)
+    </DropdownMenuItem>
+    <DropdownMenuItem onClick={() => setRatingsSort({ type: 'name', direction: 'desc' })}>
+      Users (Z-A)
+    </DropdownMenuItem>
+    <DropdownMenuItem onClick={() => setRatingsSort({ type: 'effectiveness', direction: 'desc' })}>
+      Overall Effectiveness (highest first)
+    </DropdownMenuItem>
+    <DropdownMenuItem onClick={() => setRatingsSort({ type: 'effectiveness', direction: 'asc' })}>
+      Overall Effectiveness (lowest first)
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button size="sm" className={`${buttonStyle} bg-[#51c1a9]`}>
