@@ -7,7 +7,7 @@ import { useEffect } from 'react'
 import { useState } from "react"
 // ... (keep your existing imports)
 
-const montserrat = Montserrat({ subsets: ['latin'] })
+const montserrat = montserrat({ subsets: ['latin'] })
 
 // Constants
 const sectionStyle = "overflow-hidden border-none bg-white shadow-sm"
