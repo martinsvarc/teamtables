@@ -14,20 +14,16 @@ const sectionStyle = "overflow-hidden border-none bg-white shadow-sm"
 const headerStyle = "flex items-center justify-between border-b p-4"
 const buttonStyle = "flex items-center gap-2 rounded-full text-white hover:bg-opacity-90"
 
-// Types
-type SortDirection = 'asc' | 'desc'
-type SortType = 'standard' | 'name' | 'consistency' | 'effectiveness' | 'date'
-
 interface TeamMember {
   user_id: string;
   user_name: string;
   user_picture_url: string;
-  trainings_today: number;
-  this_week: number;
-  this_month: number;
-  total_trainings: number;
-  current_streak: number;
-  longest_streak: number;
+  trainingsToday: number;
+  thisWeek: number;
+  thisMonth: number;
+  total: number;
+  currentStreak: number;
+  longestStreak: number;
   avg_overall: number;
   avg_engagement: number;
   avg_objection: number;
@@ -35,13 +31,6 @@ interface TeamMember {
   avg_program: number;
   avg_closing: number;
   avg_effectiveness: number;
-  overall_summary: string;
-  engagement_summary: string;
-  objection_summary: string;
-  information_summary: string;
-  program_summary: string;
-  closing_summary: string;
-  effectiveness_summary: string;
 }
 
 interface CallRecord {
@@ -73,6 +62,10 @@ interface DatabaseData {
   teamMembers: TeamMember[];
   currentUser: TeamMember | null;
   recentCalls: CallRecord[];
+}
+
+interface ComponentProps {
+  initialData?: DatabaseData;
 }
 
 // Props interfaces
