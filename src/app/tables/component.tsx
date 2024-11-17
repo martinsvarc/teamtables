@@ -45,12 +45,12 @@ interface TeamMember {
   user_id: string;
   user_name: string;
   user_picture_url: string;
-  trainingsToday: number;
-  thisWeek: number;
-  thisMonth: number;
-  total: number;
-  currentStreak: number;
-  longestStreak: number;
+  trainings_today: number;  // Changed from trainingsToday
+  this_week: number;        // Changed from thisWeek
+  this_month: number;       // Changed from thisMonth
+  total_trainings: number;  // Changed from total
+  current_streak: number;   // Changed from currentStreak
+  longest_streak: number;   // Changed from longestStreak
   avg_overall: number;
   avg_engagement: number;
   avg_objection: number;
@@ -58,15 +58,14 @@ interface TeamMember {
   avg_program: number;
   avg_closing: number;
   avg_effectiveness: number;
-  overall_summary?: string;
-  engagement_summary?: string;
-  objection_summary?: string;
-  information_summary?: string;
-  program_summary?: string;
-  closing_summary?: string;
-  effectiveness_summary?: string;
+  ratings_overall_summary?: string;     // Changed from overall_summary
+  ratings_engagement_summary?: string;   // Changed from engagement_summary
+  ratings_objection_summary?: string;    // Changed from objection_summary
+  ratings_information_summary?: string;  // Changed from information_summary
+  ratings_program_summary?: string;      // Changed from program_summary
+  ratings_closing_summary?: string;      // Changed from closing_summary
+  ratings_effectiveness_summary?: string; // Changed from effectiveness_summary
 }
-
 
 interface CallRecord {
   id: number;
@@ -361,78 +360,78 @@ const Component: React.FC<ComponentProps> = ({ initialData }) => {
   };
 
   // Data processing
-  const processTeamData = () => {
-    if (!data) return {
-      filteredActivityData: [],
-      filteredRatingsData: [],
-      filteredCallLogsData: []
-    };
+const processTeamData = () => {
+  if (!data) return {
+    filteredActivityData: [],
+    filteredRatingsData: [],
+    filteredCallLogsData: []
+  };
 
     // Process Activity Data
     const activityData = data.teamMembers.map(member => ({
-      user_id: member.user_id,
-      user_name: member.user_name,
-      user_picture_url: member.user_picture_url,
-      trainingsToday: member.trainings_today,
-      thisWeek: member.this_week,
-      thisMonth: member.this_month,
-      total: member.total_trainings,
-      currentStreak: member.current_streak,
-      longestStreak: member.longest_streak,
-      consistency: Math.round((member.this_month / 30) * 100)
-    }));
+    user_id: member.user_id,
+    user_name: member.user_name,
+    user_picture_url: member.user_picture_url,
+    trainingsToday: member.trainings_today,
+    thisWeek: member.this_week,
+    thisMonth: member.this_month,
+    total: member.total_trainings,
+    currentStreak: member.current_streak,
+    longestStreak: member.longest_streak,
+    consistency: Math.round((member.this_month / 30) * 100)
+  }));
 
     // Process Ratings Data
     const ratingsData = data.teamMembers.map(member => ({
-      user_id: member.user_id,
-      user_name: member.user_name,
-      user_picture_url: member.user_picture_url,
-      overall: member.avg_overall,
-      engagement: member.avg_engagement,
-      objection: member.avg_objection,
-      information: member.avg_information,
-      program: member.avg_program,
-      closing: member.avg_closing,
-      effectiveness: member.avg_effectiveness,
-      descriptions: {
-        overall: member.overall_summary,
-        engagement: member.engagement_summary,
-        objection: member.objection_summary,
-        information: member.information_summary,
-        program: member.program_summary,
-        closing: member.closing_summary,
-        effectiveness: member.effectiveness_summary
-      }
-    }));
+    user_id: member.user_id,
+    user_name: member.user_name,
+    user_picture_url: member.user_picture_url,
+    overall: member.avg_overall,
+    engagement: member.avg_engagement,
+    objection: member.avg_objection,
+    information: member.avg_information,
+    program: member.avg_program,
+    closing: member.avg_closing,
+    effectiveness: member.avg_effectiveness,
+    descriptions: {
+      overall: member.ratings_overall_summary,
+      engagement: member.ratings_engagement_summary,
+      objection: member.ratings_objection_summary,
+      information: member.ratings_information_summary,
+      program: member.ratings_program_summary,
+      closing: member.ratings_closing_summary,
+      effectiveness: member.ratings_effectiveness_summary
+    }
+  }));
 
     // Process Call Logs
-    const callLogsData = data.recentCalls;
+  const callLogsData = data.recentCalls;
 
     // Apply filters and sorting
     const filteredActivityData = sortData(
-      filterData(activityData, activitySearch),
-      activitySort.type,
-      activitySort.direction
-    );
+    filterData(activityData, activitySearch),
+    activitySort.type,
+    activitySort.direction
+  );
 
-    const filteredRatingsData = sortData(
-      filterData(ratingsData, ratingsSearch),
-      ratingsSort.type,
-      ratingsSort.direction
-    );
+   const filteredRatingsData = sortData(
+    filterData(ratingsData, ratingsSearch),
+    ratingsSort.type,
+    ratingsSort.direction
+  );
 
     const filteredCallLogsData = sortData(
-      filterData(callLogsData, callLogsSearch),
-      callLogsSort.type,
-      callLogsSort.direction
-    );
+    filterData(callLogsData, callLogsSearch),
+    callLogsSort.type,
+    callLogsSort.direction
+  );
 
     return {
-      filteredActivityData,
-      filteredRatingsData,
-      filteredCallLogsData
-    };
+    filteredActivityData,
+    filteredRatingsData,
+    filteredCallLogsData
   };
+};
 
   // Get processed data
   const { filteredActivityData, filteredRatingsData, filteredCallLogsData } = processTeamData();
