@@ -192,6 +192,20 @@ export default function Component() {
   const [showMoreActivity, setShowMoreActivity] = useState(false)
   const [showMoreRatings, setShowMoreRatings] = useState(false)
   const [showMoreCallLogs, setShowMoreCallLogs] = useState(false)
+
+const [activitySort, setActivitySort] = useState<{ type: SortType; direction: SortDirection }>({
+  type: 'standard',
+  direction: 'asc'
+})
+const [ratingsSort, setRatingsSort] = useState<{ type: SortType; direction: SortDirection }>({
+  type: 'standard',
+  direction: 'asc'
+})
+const [callLogsSort, setCallLogsSort] = useState<{ type: SortType; direction: SortDirection }>({
+  type: 'standard',
+  direction: 'asc'
+})
+
   const [date, setDate] = React.useState<DateRange | undefined>(undefined)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [activitySearch, setActivitySearch] = useState("")
@@ -223,9 +237,23 @@ const handleQuickSelection = (days: number) => {
   setDate({ from, to })
 }
 
-  const filteredActivityData = filterData(activityData, activitySearch)
-  const filteredRatingsData = filterData(ratingsData, ratingsSearch)
-  const filteredCallLogsData = filterData(callLogsData, callLogsSearch)
+const filteredActivityData = sortData(
+  filterData(activityData, activitySearch),
+  activitySort.type,
+  activitySort.direction
+)
+
+const filteredRatingsData = sortData(
+  filterData(ratingsData, ratingsSearch),
+  ratingsSort.type,
+  ratingsSort.direction
+)
+
+const filteredCallLogsData = sortData(
+  filterData(callLogsData, callLogsSearch),
+  callLogsSort.type,
+  callLogsSort.direction
+)
 
   const visibleActivityData = showMoreActivity ? filteredActivityData : filteredActivityData.slice(0, 5)
   const visibleRatingsData = showMoreRatings ? filteredRatingsData : filteredRatingsData.slice(0, 5)
@@ -286,9 +314,22 @@ const handleQuickSelection = (days: number) => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem>Standard sorting</DropdownMenuItem>
-                      <DropdownMenuItem>Users (A-Z)</DropdownMenuItem>
-                      <DropdownMenuItem>Users (Z-A)</DropdownMenuItem>
+  <DropdownMenuItem onClick={() => setActivitySort({ type: 'standard', direction: 'asc' })}>
+    Standard sorting
+  </DropdownMenuItem>
+  <DropdownMenuItem onClick={() => setActivitySort({ type: 'name', direction: 'asc' })}>
+    Users (A-Z)
+  </DropdownMenuItem>
+  <DropdownMenuItem onClick={() => setActivitySort({ type: 'name', direction: 'desc' })}>
+    Users (Z-A)
+  </DropdownMenuItem>
+  <DropdownMenuItem onClick={() => setActivitySort({ type: 'consistency', direction: 'desc' })}>
+    Consistency (highest first)
+  </DropdownMenuItem>
+  <DropdownMenuItem onClick={() => setActivitySort({ type: 'consistency', direction: 'asc' })}>
+    Consistency (lowest first)
+  </DropdownMenuItem>
+</DropdownMenuContent>
                       <DropdownMenuItem>Consistency (highest first)</DropdownMenuItem>
                       <DropdownMenuItem>Consistency (lowest first)</DropdownMenuItem>
                     </DropdownMenuContent>
@@ -371,10 +412,23 @@ const handleQuickSelection = (days: number) => {
                         Sort
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem>Standard sorting</DropdownMenuItem>
-                      <DropdownMenuItem>Users (A-Z)</DropdownMenuItem>
-                      <DropdownMenuItem>Users (Z-A)</DropdownMenuItem>
+                   <DropdownMenuContent align="end" className="w-56">
+  <DropdownMenuItem onClick={() => setRatingsSort({ type: 'standard', direction: 'asc' })}>
+    Standard sorting
+  </DropdownMenuItem>
+  <DropdownMenuItem onClick={() => setRatingsSort({ type: 'name', direction: 'asc' })}>
+    Users (A-Z)
+  </DropdownMenuItem>
+  <DropdownMenuItem onClick={() => setRatingsSort({ type: 'name', direction: 'desc' })}>
+    Users (Z-A)
+  </DropdownMenuItem>
+  <DropdownMenuItem onClick={() => setRatingsSort({ type: 'effectiveness', direction: 'desc' })}>
+    Overall Effectiveness (highest first)
+  </DropdownMenuItem>
+  <DropdownMenuItem onClick={() => setRatingsSort({ type: 'effectiveness', direction: 'asc' })}>
+    Overall Effectiveness (lowest first)
+  </DropdownMenuItem>
+</DropdownMenuContent>
                       <DropdownMenuItem>Overall Effectiveness (highest first)</DropdownMenuItem>
                       <DropdownMenuItem>Overall Effectiveness (lowest first)</DropdownMenuItem>
                     </DropdownMenuContent>
