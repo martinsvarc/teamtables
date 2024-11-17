@@ -58,7 +58,15 @@ interface TeamMember {
   avg_program: number;
   avg_closing: number;
   avg_effectiveness: number;
+  overall_summary?: string;
+  engagement_summary?: string;
+  objection_summary?: string;
+  information_summary?: string;
+  program_summary?: string;
+  closing_summary?: string;
+  effectiveness_summary?: string;
 }
+
 
 interface CallRecord {
   id: number;
