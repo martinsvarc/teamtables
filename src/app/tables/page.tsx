@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from "react"
+import { DateRange } from "react-day-picker"
 import { useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -141,36 +142,35 @@ export default function Component() {
   const [showMoreActivity, setShowMoreActivity] = useState(false)
   const [showMoreRatings, setShowMoreRatings] = useState(false)
   const [showMoreCallLogs, setShowMoreCallLogs] = useState(false)
-  const [date, setDate] = React.useState<Date | undefined>(new Date())
+  const [date, setDate] = React.useState<DateRange | undefined>(undefined)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [activitySearch, setActivitySearch] = useState("")
   const [ratingsSearch, setRatingsSearch] = useState("")
   const [callLogsSearch, setCallLogsSearch] = useState("")
   const [selectedAudio, setSelectedAudio] = useState<{ src: string; caller: string } | null>(null)
 
-  const formatDateRange = (date: Date | undefined) => {
-    if (!date) return "All time"
-    const now = new Date()
-    const diffTime = Math.abs(now.getTime() - date.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    
-    if (diffDays <= 7) return "Last 7 Days"
-    if (diffDays <= 14) return "Last 14 Days"
-    if (diffDays <= 30) return "Last 30 Days"
-    
-    return `${date.toLocaleDateString()} - ${now.toLocaleDateString()}`
-  }
-
- interface DataItem {
-  name: string;
-  avatar: string;
-  [key: string]: any;
+  const formatDateRange = (dateRange: DateRange | undefined) => {
+  if (!dateRange) return "All time"
+  const { from, to } = dateRange
+  
+  if (!from) return "All time"
+  if (!to) return from.toLocaleDateString()
+  
+  const diffTime = Math.abs(to.getTime() - from.getTime())
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays <= 7) return "Last 7 Days"
+  if (diffDays <= 14) return "Last 14 Days"
+  if (diffDays <= 30) return "Last 30 Days"
+  
+  return `${from.toLocaleDateString()} - ${to.toLocaleDateString()}`
 }
 
-const filterData = (data: DataItem[], query: string) => {
-  return data.filter(item => 
-    item.name.toLowerCase().includes(query.toLowerCase())
-  );
+const handleQuickSelection = (days: number) => {
+  const to = new Date()
+  const from = new Date()
+  from.setDate(to.getDate() - days)
+  setDate({ from, to })
 }
 
   const filteredActivityData = filterData(activityData, activitySearch)
@@ -414,53 +414,69 @@ const filterData = (data: DataItem[], query: string) => {
                   <h2 className="text-lg font-extrabold">Team Call Logs</h2>
                 </div>
                 <div className="flex gap-2">
-                  <Popover>
- <PopoverTrigger asChild>
-  <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
-    <CalendarIcon className="h-4 w-4" />
-    {formatDateRange(date)}
-  </Button>
-</PopoverTrigger>
-<PopoverContent className="w-[500px] p-0 bg-white shadow-md rounded-md border" align="start">
-  <div className="p-2 border-b bg-white">
-    <Button
-      variant="ghost"
-      className="w-full justify-start font-normal text-base"
-      onClick={() => setDate(undefined)}
-    >
-      All time
+                 <Popover>
+  <PopoverTrigger asChild>
+    <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
+      <CalendarIcon className="h-4 w-4" />
+      {formatDateRange(date)}
     </Button>
-  </div>
-  <div className="p-2 bg-white">
-    <div className="flex space-x-2">
-     <Calendar
-  mode="range"
-  selected={date}
-  onSelect={handleDateSelect}
-  className="w-full bg-white"
-  numberOfMonths={2}
-  showOutsideDays={false}
-  classNames={{
-    months: "flex space-x-2",
-    head_cell: "text-muted-foreground font-normal text-sm",
-    cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-    day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
-    day_selected: "bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600",
-    day_outside: "text-muted-foreground opacity-50",
-    nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
-  }}
-/>
+  </PopoverTrigger>
+  <PopoverContent className="w-[500px] p-0 bg-white shadow-md rounded-md border" align="start">
+    <div className="p-2 border-b bg-white">
+      <Button
+        variant="ghost"
+        className="w-full justify-start font-normal text-base"
+        onClick={() => setDate(undefined)}
+      >
+        All time
+      </Button>
     </div>
-    <div className="grid grid-cols-2 gap-2 mt-4">
-      <Button variant="outline" className="w-full justify-center">This Week</Button>
-      <Button variant="outline" className="w-full justify-center">Last Week</Button>
-      <Button variant="outline" className="w-full justify-center">Last 7 Days</Button>
-      <Button variant="outline" className="w-full justify-center">This Month</Button>
-      <Button variant="outline" className="w-full justify-center">Last 14 Days</Button>
-      <Button variant="outline" className="w-full justify-center">Last 30 Days</Button>
+    <div className="p-2 bg-white">
+      <div className="flex space-x-2">
+        <Calendar
+          mode="range"
+          selected={date}
+          onSelect={setDate}
+          className="w-full bg-white"
+          numberOfMonths={2}
+          showOutsideDays={false}
+          classNames={{
+            months: "flex space-x-2",
+            head_cell: "text-muted-foreground font-normal text-sm text-center",
+            cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+            day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-gray-100 text-center flex items-center justify-center",
+            day_selected: "bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600",
+            day_today: "bg-gray-50 text-gray-900",
+            day_outside: "text-muted-foreground opacity-50",
+            day_range_middle: "aria-selected:bg-blue-50 aria-selected:text-blue-600",
+            day_range_end: "aria-selected:bg-blue-50 aria-selected:text-blue-600",
+            day_range_start: "aria-selected:bg-blue-50 aria-selected:text-blue-600",
+            nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+          }}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(7)}>
+          This Week
+        </Button>
+        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(14)}>
+          Last Week
+        </Button>
+        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(7)}>
+          Last 7 Days
+        </Button>
+        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(30)}>
+          This Month
+        </Button>
+        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(14)}>
+          Last 14 Days
+        </Button>
+        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(30)}>
+          Last 30 Days
+        </Button>
+      </div>
     </div>
-  </div>
-</PopoverContent>
+  </PopoverContent>
 </Popover>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
