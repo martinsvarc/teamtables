@@ -39,6 +39,48 @@ const filterData = <T extends { name: string }>(data: T[], searchTerm: string): 
   )
 }
 
+type SortDirection = 'asc' | 'desc'
+type SortType = 'standard' | 'name' | 'consistency' | 'effectiveness' | 'date'
+
+const sortData = <T extends Record<string, any>>(
+  data: T[],
+  sortType: SortType,
+  direction: SortDirection
+): T[] => {
+  const sortedData = [...data]
+
+  switch (sortType) {
+    case 'name':
+      return sortedData.sort((a, b) => {
+        const comparison = a.name.localeCompare(b.name)
+        return direction === 'asc' ? comparison : -comparison
+      })
+    
+    case 'consistency':
+      return sortedData.sort((a, b) => {
+        const comparison = (a.consistency || 0) - (b.consistency || 0)
+        return direction === 'asc' ? comparison : -comparison
+      })
+    
+    case 'effectiveness':
+      return sortedData.sort((a, b) => {
+        const comparison = (a.effectiveness || 0) - (b.effectiveness || 0)
+        return direction === 'asc' ? comparison : -comparison
+      })
+    
+    case 'date':
+      return sortedData.sort((a, b) => {
+        const dateA = new Date(a.date).getTime()
+        const dateB = new Date(b.date).getTime()
+        const comparison = dateA - dateB
+        return direction === 'asc' ? comparison : -comparison
+      })
+    
+    default:
+      return sortedData
+  }
+}
+
 function ScoreCell({ score, description, title, color }: { score: number; description: string; title: string; color: string }) {
   const [isHovered, setIsHovered] = useState(false)
 
