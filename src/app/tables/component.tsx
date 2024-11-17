@@ -35,6 +35,7 @@ const sectionStyle = "overflow-hidden border-none bg-white shadow-sm"
 const headerStyle = "flex items-center justify-between border-b p-4"
 const buttonStyle = "flex items-center gap-2 rounded-full text-white hover:bg-opacity-90"
 
+// Helper Functions
 const filterData = <T extends { name: string }>(data: T[], searchTerm: string): T[] => {
   if (!searchTerm) return data
   const lowercaseSearch = searchTerm.toLowerCase()
@@ -85,6 +86,24 @@ const sortData = <T extends Record<string, any>>(
   }
 }
 
+const formatDateRange = (dateRange: DateRange | undefined) => {
+  if (!dateRange) return "All time"
+  const { from, to } = dateRange
+  
+  if (!from) return "All time"
+  if (!to) return from.toLocaleDateString()
+  
+  const diffTime = Math.abs(to.getTime() - from.getTime())
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays <= 7) return "Last 7 Days"
+  if (diffDays <= 14) return "Last 14 Days"
+  if (diffDays <= 30) return "Last 30 Days"
+  
+  return `${from.toLocaleDateString()} - ${to.toLocaleDateString()}`
+}
+
+// Components
 function ScoreCell({ score, description, title, color }: { score: number; description: string; title: string; color: string }) {
   const [isHovered, setIsHovered] = useState(false)
 
@@ -192,72 +211,57 @@ function AudioPlayer({ audioSrc, caller }: { audioSrc: string; caller: string })
   )
 }
 
+// Main Component
 const Component = () => {
+  // State declarations
   const [showMoreActivity, setShowMoreActivity] = useState(false)
   const [showMoreRatings, setShowMoreRatings] = useState(false)
   const [showMoreCallLogs, setShowMoreCallLogs] = useState(false)
-
-const [activitySort, setActivitySort] = useState<{ type: SortType; direction: SortDirection }>({
-  type: 'standard',
-  direction: 'asc'
-})
-const [ratingsSort, setRatingsSort] = useState<{ type: SortType; direction: SortDirection }>({
-  type: 'standard',
-  direction: 'asc'
-})
-const [callLogsSort, setCallLogsSort] = useState<{ type: SortType; direction: SortDirection }>({
-  type: 'standard',
-  direction: 'asc'
-})
-
   const [date, setDate] = React.useState<DateRange | undefined>(undefined)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [activitySearch, setActivitySearch] = useState("")
   const [ratingsSearch, setRatingsSearch] = useState("")
   const [callLogsSearch, setCallLogsSearch] = useState("")
   const [selectedAudio, setSelectedAudio] = useState<{ src: string; caller: string } | null>(null)
+  const [activitySort, setActivitySort] = useState<{ type: SortType; direction: SortDirection }>({
+    type: 'standard',
+    direction: 'asc'
+  })
+  const [ratingsSort, setRatingsSort] = useState<{ type: SortType; direction: SortDirection }>({
+    type: 'standard',
+    direction: 'asc'
+  })
+  const [callLogsSort, setCallLogsSort] = useState<{ type: SortType; direction: SortDirection }>({
+    type: 'standard',
+    direction: 'asc'
+  })
 
-  const formatDateRange = (dateRange: DateRange | undefined) => {
-  if (!dateRange) return "All time"
-  const { from, to } = dateRange
-  
-  if (!from) return "All time"
-  if (!to) return from.toLocaleDateString()
-  
-  const diffTime = Math.abs(to.getTime() - from.getTime())
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  
-  if (diffDays <= 7) return "Last 7 Days"
-  if (diffDays <= 14) return "Last 14 Days"
-  if (diffDays <= 30) return "Last 30 Days"
-  
-  return `${from.toLocaleDateString()} - ${to.toLocaleDateString()}`
-}
+  // Handlers
+  const handleQuickSelection = (days: number) => {
+    const to = new Date()
+    const from = new Date()
+    from.setDate(to.getDate() - days)
+    setDate({ from, to })
+  }
 
-const handleQuickSelection = (days: number) => {
-  const to = new Date()
-  const from = new Date()
-  from.setDate(to.getDate() - days)
-  setDate({ from, to })
-}
+  // Data filtering and sorting
+  const filteredActivityData = sortData(
+    filterData(activityData, activitySearch),
+    activitySort.type,
+    activitySort.direction
+  )
 
-const filteredActivityData = sortData(
-  filterData(activityData, activitySearch),
-  activitySort.type,
-  activitySort.direction
-)
+  const filteredRatingsData = sortData(
+    filterData(ratingsData, ratingsSearch),
+    ratingsSort.type,
+    ratingsSort.direction
+  )
 
-const filteredRatingsData = sortData(
-  filterData(ratingsData, ratingsSearch),
-  ratingsSort.type,
-  ratingsSort.direction
-)
-
-const filteredCallLogsData = sortData(
-  filterData(callLogsData, callLogsSearch),
-  callLogsSort.type,
-  callLogsSort.direction
-)
+  const filteredCallLogsData = sortData(
+    filterData(callLogsData, callLogsSearch),
+    callLogsSort.type,
+    callLogsSort.direction
+  )
 
   const visibleActivityData = showMoreActivity ? filteredActivityData : filteredActivityData.slice(0, 5)
   const visibleRatingsData = showMoreRatings ? filteredRatingsData : filteredRatingsData.slice(0, 5)
@@ -265,6 +269,7 @@ const filteredCallLogsData = sortData(
 
   return (
     <div className={`flex h-screen bg-gray-100 ${montserrat.className}`}>
+      {/* Sidebar */}
       <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
         <SheetTrigger asChild>
           <Button variant="outline" size="icon" className="fixed top-4 left-4 z-50 lg:hidden">
@@ -295,6 +300,7 @@ const filteredCallLogsData = sortData(
         </SheetContent>
       </Sheet>
 
+      {/* Main Content */}
       <div className="flex-1 overflow-auto p-4 font-medium">
         <ScrollArea className="h-full">
           <div className="space-y-4">
@@ -313,27 +319,28 @@ const filteredCallLogsData = sortData(
                         Sort
                       </Button>
                     </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-  <DropdownMenuItem onClick={() => setActivitySort({ type: 'standard', direction: 'asc' })}>
-    Standard sorting
-  </DropdownMenuItem>
-  <DropdownMenuItem onClick={() => setActivitySort({ type: 'name', direction: 'asc' })}>
-    Users (A-Z)
-  </DropdownMenuItem>
-  <DropdownMenuItem onClick={() => setActivitySort({ type: 'name', direction: 'desc' })}>
-    Users (Z-A)
-  </DropdownMenuItem>
-  <DropdownMenuItem onClick={() => setActivitySort({ type: 'consistency', direction: 'desc' })}>
-    Consistency (highest first)
-  </DropdownMenuItem>
-  <DropdownMenuItem onClick={() => setActivitySort({ type: 'consistency', direction: 'asc' })}>
-    Consistency (lowest first)
-  </DropdownMenuItem>
-</DropdownMenuContent>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={() => setActivitySort({ type: 'standard', direction: 'asc' })}>
+                        Standard sorting
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActivitySort({ type: 'name', direction: 'asc' })}>
+                        Users (A-Z)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActivitySort({ type: 'name', direction: 'desc' })}>
+                        Users (Z-A)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActivitySort({ type: 'consistency', direction: 'desc' })}>
+                        Consistency (highest first)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActivitySort({ type: 'consistency', direction: 'asc' })}>
+                        Consistency (lowest first)
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
                   </DropdownMenu>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-[#556bc7]`}>
+                      <Button
+<Button size="sm" className={`${buttonStyle} bg-[#556bc7]`}>
                         <Search className="h-4 w-4" />
                         Search
                       </Button>
@@ -402,31 +409,31 @@ const filteredCallLogsData = sortData(
                   <h2 className="text-lg font-extrabold">Ratings Team's View</h2>
                 </div>
                 <div className="flex gap-2">
-                 <DropdownMenu>
-  <DropdownMenuTrigger asChild>
-    <Button size="sm" className={`${buttonStyle} bg-[#51c1a9]`}>
-      <ArrowUpDown className="h-4 w-4" />
-      Sort
-    </Button>
-  </DropdownMenuTrigger>
-  <DropdownMenuContent align="end" className="w-56">
-    <DropdownMenuItem onClick={() => setRatingsSort({ type: 'standard', direction: 'asc' })}>
-      Standard sorting
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => setRatingsSort({ type: 'name', direction: 'asc' })}>
-      Users (A-Z)
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => setRatingsSort({ type: 'name', direction: 'desc' })}>
-      Users (Z-A)
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => setRatingsSort({ type: 'effectiveness', direction: 'desc' })}>
-      Overall Effectiveness (highest first)
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => setRatingsSort({ type: 'effectiveness', direction: 'asc' })}>
-      Overall Effectiveness (lowest first)
-    </DropdownMenuItem>
-  </DropdownMenuContent>
-</DropdownMenu>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" className={`${buttonStyle} bg-[#51c1a9]`}>
+                        <ArrowUpDown className="h-4 w-4" />
+                        Sort
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={() => setRatingsSort({ type: 'standard', direction: 'asc' })}>
+                        Standard sorting
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setRatingsSort({ type: 'name', direction: 'asc' })}>
+                        Users (A-Z)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setRatingsSort({ type: 'name', direction: 'desc' })}>
+                        Users (Z-A)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setRatingsSort({ type: 'effectiveness', direction: 'desc' })}>
+                        Overall Effectiveness (highest first)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setRatingsSort({ type: 'effectiveness', direction: 'asc' })}>
+                        Overall Effectiveness (lowest first)
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button size="sm" className={`${buttonStyle} bg-[#51c1a9]`}>
@@ -512,121 +519,68 @@ const filteredCallLogsData = sortData(
                   <h2 className="text-lg font-extrabold">Team Call Logs</h2>
                 </div>
                 <div className="flex gap-2">
-              <Popover>
-  <PopoverTrigger asChild>
-    <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
-      <CalendarIcon className="h-4 w-4" />
-      {formatDateRange(date)}
-    </Button>
-  </PopoverTrigger>
-  <PopoverContent className="w-[500px] p-4 bg-white shadow-md rounded-md border" align="start">
-    <Button
-      variant="outline"
-      className="w-full py-2 font-normal text-base border rounded-md mb-4"
-      onClick={() => setDate(undefined)}
-    >
-      All time
-    </Button>
-    
-    <Calendar
-      mode="range"
-      selected={date}
-      onSelect={setDate}
-      className="w-full bg-white"
-      numberOfMonths={2}
-      showOutsideDays={false}
-      classNames={{
-        months: "flex space-x-2",
-        month: "space-y-4",
-        caption: "flex justify-between pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
-        nav: "space-x-1 flex items-center",
-        nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
-        table: "w-full border-collapse space-y-1",
-        head_row: "flex",
-        head_cell: "w-9 font-normal text-[0.8rem] text-muted-foreground",
-        row: "flex w-full mt-2",
-        cell: "w-9 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-        day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-gray-100",
-        day_range_start: "bg-blue-50 text-blue-600",
-        day_range_end: "bg-blue-50 text-blue-600",
-        day_selected: "bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600",
-      }}
-    />
-    <div className="grid grid-cols-2 gap-2 mt-4">
-      <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(7)}>
-        This Week
-      </Button>
-      <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(14)}>
-        Last Week
-      </Button>
-      <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(7)}>
-        Last 7 Days
-      </Button>
-      <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(30)}>
-        This Month
-      </Button>
-      <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(14)}>
-        Last 14 Days
-      </Button>
-      <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(30)}>
-        Last 30 Days
-      </Button>
-    </div>
-  </PopoverContent>
-</Popover>
-<DropdownMenu>
-  <DropdownMenuTrigger asChild>
-    <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
-      <ArrowUpDown className="h-4 w-4" />
-      Sort
-    </Button>
-  </DropdownMenuTrigger>
-  <DropdownMenuContent align="end" className="w-56">
-    <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'standard', direction: 'asc' })}>
-      Standard sorting
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'name', direction: 'asc' })}>
-      Users (A-Z)
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'name', direction: 'desc' })}>
-      Users (Z-A)
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'date', direction: 'desc' })}>
-      Date (newest first)
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'date', direction: 'asc' })}>
-      Date (oldest first)
-    </DropdownMenuItem>
-  </DropdownMenuContent>
-</DropdownMenu>
-      
-      {/* Quick selection buttons */}
-      <div className="grid grid-cols-2 gap-2 mt-4">
-        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(7)}>
-          This Week
-        </Button>
-        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(14)}>
-          Last Week
-        </Button>
-        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(7)}>
-          Last 7 Days
-        </Button>
-        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(30)}>
-          This Month
-        </Button>
-        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(14)}>
-          Last 14 Days
-        </Button>
-        <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(30)}>
-          Last 30 Days
-        </Button>
-      </div>
-    </div>
-  </PopoverContent>
-</Popover>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
+                        <CalendarIcon className="h-4 w-4" />
+                        {formatDateRange(date)}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[500px] p-4 bg-white shadow-md rounded-md border" align="start">
+                      <div className="space-y-4">
+                        <Button
+                          variant="outline"
+                          className="w-full py-2 font-normal text-base border rounded-md"
+                          onClick={() => setDate(undefined)}
+                        >
+                          All time
+                        </Button>
+                        
+                        <Calendar
+                          mode="range"
+                          selected={date}
+                          onSelect={setDate}
+                          className="w-full bg-white"
+                          numberOfMonths={2}
+                          showOutsideDays={false}
+                          classNames={{
+                            months: "flex space-x-2",
+                            month: "space-y-4",
+                            caption: "flex justify-between pt-1 relative items-center",
+                            caption_label: "text-sm font-medium",
+                            nav: "space-x-1 flex items-center",
+                            nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                            nav_button_previous: "absolute left-1",
+                            nav_button_next: "absolute right-1",
+                            table: "w-full border-collapse space-y-1",
+                            head_row: "flex",
+                            head_cell: "w-9 font-normal text-[0.8rem] text-muted-foreground",
+                            row: "flex w-full mt-2",
+                            cell: "w-9 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                            day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-gray-100",
+                            day_range_start: "bg-blue-50 text-blue-600",
+                            day_range_end: "bg-blue-50 text-blue-600",
+                            day_selected: "bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600",
+                          }}
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(7)}>
+                            Last 7 Days
+                          </Button>
+                          <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(14)}>
+                            Last 14 Days
+                          </Button>
+                          <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(30)}>
+                            Last 30 Days
+                          </Button>
+                          <Button variant="outline" className="w-full justify-center" onClick={() => handleQuickSelection(90)}>
+                            Last 90 Days
+                          </Button>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
@@ -635,16 +589,28 @@ const filteredCallLogsData = sortData(
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem>Standard sorting</DropdownMenuItem>
-                      <DropdownMenuItem>Users (A-Z)</DropdownMenuItem>
-                      <DropdownMenuItem>Users (Z-A)</DropdownMenuItem>
-                      <DropdownMenuItem>Date (newest first)</DropdownMenuItem>
-                      <DropdownMenuItem>Date (oldest first)</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'standard', direction: 'asc' })}>
+                        Standard sorting
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'name', direction: 'asc' })}>
+                        Users (A-Z)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'name', direction: 'desc' })}>
+                        Users (Z-A)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'date', direction: 'desc' })}>
+                        Date (newest first)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setCallLogsSort({ type: 'date', direction: 'asc' })}>
+                        Date (oldest first)
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
+                      <Button size="sm" className={`${button
+<Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
                         <Search className="h-4 w-4" />
                         Search
                       </Button>
@@ -750,6 +716,7 @@ const filteredCallLogsData = sortData(
   )
 }
 
+// Sample Data
 const activityData = [
   { name: "Sarah Johnson", avatar: "SJ", trainingsToday: 3, thisWeek: 15, thisMonth: 45, total: 180, currentStreak: 7, longestStreak: 15, consistency: 85 },
   { name: "Michael Chen", avatar: "MC", trainingsToday: 4, thisWeek: 18, thisMonth: 52, total: 195, currentStreak: 9, longestStreak: 18, consistency: 92 },
