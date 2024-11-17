@@ -188,7 +188,7 @@ function AudioPlayer({ audioSrc, caller }: { audioSrc: string; caller: string })
   )
 }
 
-export default function Component() {
+const Component = () => {
   const [showMoreActivity, setShowMoreActivity] = useState(false)
   const [showMoreRatings, setShowMoreRatings] = useState(false)
   const [showMoreCallLogs, setShowMoreCallLogs] = useState(false)
@@ -773,3 +773,5 @@ const callLogsData = [
   { name: "John Martinez", avatar: "JM", date: "11/14/2024", caller: "Peter", callerAvatar: "P", audioSrc: "/sample-audio.mp3", performance: 95, engagement: 96, objection: 94, information: 95, program: 93, closing: 92, effectiveness: 95 },
   { name: "Emma Thompson", avatar: "ET", date: "11/15/2024", caller: "Steve", callerAvatar: "S", audioSrc: "/sample-audio.mp3", performance: 89, engagement: 91, objection: 87, information: 90, program: 88, closing: 86, effectiveness: 89 },
 ]
+
+export default Component
