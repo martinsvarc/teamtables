@@ -31,6 +31,10 @@ import { Slider } from "@/components/ui/slider"
 
 const montserrat = Montserrat({ subsets: ['latin'] })
 
+const sectionStyle = "overflow-hidden border-none bg-white shadow-sm"
+const headerStyle = "flex items-center justify-between border-b p-4"
+const buttonStyle = "flex items-center gap-2 rounded-full text-white hover:bg-opacity-90"
+
 const filterData = <T extends { name: string }>(data: T[], searchTerm: string): T[] => {
   if (!searchTerm) return data
   const lowercaseSearch = searchTerm.toLowerCase()
@@ -187,10 +191,6 @@ function AudioPlayer({ audioSrc, caller }: { audioSrc: string; caller: string })
     </div>
   )
 }
-
-  const sectionStyle = "overflow-hidden border-none bg-white shadow-sm"
-  const headerStyle = "flex items-center justify-between border-b p-4"
-  const buttonStyle = "flex items-center gap-2 rounded-full text-white hover:bg-opacity-90"
 
 const Component = () => {
   const [showMoreActivity, setShowMoreActivity] = useState(false)
