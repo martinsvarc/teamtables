@@ -433,27 +433,23 @@ const filterData = (data: DataItem[], query: string) => {
   </div>
   <div className="p-2 bg-white">
     <div className="flex space-x-2">
-      <Calendar
-        mode="range"
-        selected={date}
-        onSelect={setDate}
-        className="w-full bg-white"
-        numberOfMonths={2}
-        showOutsideDays={false}
-        classNames={{
-          months: "flex space-x-2",
-          head_cell: "text-muted-foreground font-normal text-sm text-center",
-          cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-          day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-gray-100 text-center flex items-center justify-center",
-          day_selected: "bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600",
-          day_today: "bg-gray-50 text-gray-900",
-          day_outside: "text-muted-foreground opacity-50",
-          day_range_middle: "aria-selected:bg-blue-50 aria-selected:text-blue-600",
-          day_range_end: "aria-selected:bg-blue-50 aria-selected:text-blue-600",
-          day_range_start: "aria-selected:bg-blue-50 aria-selected:text-blue-600",
-          nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
-        }}
-      />
+     <Calendar
+  mode="range"
+  selected={date}
+  onSelect={handleDateSelect}
+  className="w-full bg-white"
+  numberOfMonths={2}
+  showOutsideDays={false}
+  classNames={{
+    months: "flex space-x-2",
+    head_cell: "text-muted-foreground font-normal text-sm",
+    cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+    day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
+    day_selected: "bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600",
+    day_outside: "text-muted-foreground opacity-50",
+    nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+  }}
+/>
     </div>
     <div className="grid grid-cols-2 gap-2 mt-4">
       <Button variant="outline" className="w-full justify-center">This Week</Button>
