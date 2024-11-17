@@ -31,7 +31,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Slider } from "@/components/ui/slider"
 import { Montserrat } from 'next/font/google'
 
-const montserrat = montserrat({ subsets: ['latin'] })
+const montserratFont = Montserrat({ subsets: ['latin'] })
 
 // Constants
 const sectionStyle = "overflow-hidden border-none bg-white shadow-sm"
