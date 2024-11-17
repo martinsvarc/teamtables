@@ -8,16 +8,13 @@ export default async function Page({
 }: {
   searchParams: { memberId: string; teamId: string };
 }) {
-  if (!searchParams.memberId || !searchParams.teamId) {
+  const memberId = searchParams.memberId;
+  const teamId = searchParams.teamId;
+
+  if (!memberId || !teamId) {
     return <div>Member ID and Team ID are required</div>;
   }
 
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Component />
-    </Suspense>
-  );
-}
   try {
     // Get user stats
     const { rows: stats } = await sql`
@@ -38,7 +35,7 @@ export default async function Page({
           ROUND(AVG(closing_score)) as avg_closing,
           ROUND(AVG(effectiveness_score)) as avg_effectiveness
         FROM call_records
-        WHERE user_id = ${memberId}
+        WHERE team_id = ${teamId}
         GROUP BY user_id, user_name, user_picture_url
       )
       SELECT * FROM user_stats;
@@ -46,66 +43,46 @@ export default async function Page({
 
     // Get recent calls
     const { rows: recentCalls } = await sql`
-      SELECT * FROM call_records
-      WHERE user_id = ${memberId}
+      SELECT *
+      FROM call_records
+      WHERE team_id = ${teamId}
       ORDER BY call_date DESC
       LIMIT 5;
     `;
 
+    const teamData = {
+      teamMembers: stats.map(member => ({
+        user_id: member.user_id,
+        user_name: member.user_name,
+        user_picture_url: member.user_picture_url,
+        trainingsToday: Number(member.trainings_today),
+        thisWeek: Number(member.this_week),
+        thisMonth: Number(member.this_month),
+        total: Number(member.total_trainings),
+        currentStreak: 0, // You'll need to calculate this
+        longestStreak: 0, // You'll need to calculate this
+        avg_overall: Number(member.avg_overall),
+        avg_engagement: Number(member.avg_engagement),
+        avg_objection: Number(member.avg_objection),
+        avg_information: Number(member.avg_information),
+        avg_program: Number(member.avg_program),
+        avg_closing: Number(member.avg_closing),
+        avg_effectiveness: Number(member.avg_effectiveness),
+      })),
+      currentUser: stats.find(member => member.user_id === memberId),
+      recentCalls: recentCalls.map(call => ({
+        ...call,
+        call_date: call.call_date.toISOString(),
+      }))
+    };
+
     return (
       <Suspense fallback={<div>Loading...</div>}>
-        <Component
-          initialData={{
-            stats: {
-              trainingsToday: Number(stats[0]?.trainings_today || 0),
-              thisWeek: Number(stats[0]?.this_week || 0),
-              thisMonth: Number(stats[0]?.this_month || 0),
-              total: Number(stats[0]?.total_trainings || 0),
-              currentStreak: 0,
-              longestStreak: 0,
-            },
-            ratings: {
-              overall: {
-                score: Number(stats[0]?.avg_overall || 0),
-                description: "Overall performance across all calls"
-              },
-              engagement: {
-                score: Number(stats[0]?.avg_engagement || 0),
-                description: "Average engagement score"
-              },
-              objection: {
-                score: Number(stats[0]?.avg_objection || 0),
-                description: "Average objection handling score"
-              },
-              information: {
-                score: Number(stats[0]?.avg_information || 0),
-                description: "Average information gathering score"
-              },
-              program: {
-                score: Number(stats[0]?.avg_program || 0),
-                description: "Average program explanation score"
-              },
-              closing: {
-                score: Number(stats[0]?.avg_closing || 0),
-                description: "Average closing skills score"
-              },
-              effectiveness: {
-                score: Number(stats[0]?.avg_effectiveness || 0),
-                description: "Average overall effectiveness score"
-              }
-            },
-            user: {
-              id: memberId,
-              name: stats[0]?.user_name || "Unknown",
-              picture: stats[0]?.user_picture_url || ""
-            },
-            recentCalls
-          }}
-        />
+        <Component initialData={teamData} />
       </Suspense>
     );
   } catch (error) {
     console.error('Error:', error);
-    return <div>Error loading call records</div>;
+    return <div>Error loading data</div>;
   }
 }
