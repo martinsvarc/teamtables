@@ -2,6 +2,8 @@
 
 import * as React from "react"
 import { DateRange } from "react-day-picker"
+import { useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
 import { useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -50,6 +52,60 @@ interface ScoreCellProps {
 interface AudioPlayerProps {
   audioSrc: string
   caller: string
+}
+
+interface CallRecord {
+  id: number;
+  user_name: string;
+  user_picture_url: string;
+  assistant_name: string;
+  assistant_picture_url: string;
+  recording_url: string;
+  call_date: string;
+  overall_performance: number;
+  engagement_score: number;
+  objection_handling_score: number;
+  information_gathering_score: number;
+  program_explanation_score: number;
+  closing_score: number;
+  effectiveness_score: number;
+  overall_performance_text: string;
+  engagement_text: string;
+  objection_handling_text: string;
+  information_gathering_text: string;
+  program_explanation_text: string;
+  closing_text: string;
+  effectiveness_text: string;
+}
+
+interface Stats {
+  trainingsToday: number;
+  thisWeek: number;
+  thisMonth: number;
+  total: number;
+  currentStreak: number;
+  longestStreak: number;
+}
+
+interface ComponentProps {
+  initialData?: {
+    stats: Stats;
+    ratings: {
+      overall: { score: number; description: string };
+      engagement: { score: number; description: string };
+      objection: { score: number; description: string };
+      information: { score: number; description: string };
+      program: { score: number; description: string };
+      closing: { score: number; description: string };
+      effectiveness: { score: number; description: string };
+    };
+    user: {
+      id: string;
+      name: string;
+      picture: string;
+    };
+    recentCalls: CallRecord[];
+  };
 }
 
 // Helper Functions
