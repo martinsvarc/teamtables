@@ -5,7 +5,31 @@ import { DateRange } from "react-day-picker"
 import { useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import { useState } from "react"
-// ... (keep your existing imports)
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { PlayCircle, ChevronDown, BarChart2, Star, PhoneCall, ArrowUpDown, Search, CalendarIcon, Info, ChevronLeft, ChevronRight, CalendarRange, Menu, Pause, SkipBack, SkipForward } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
+import { Calendar } from "@/components/ui/calendar"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Slider } from "@/components/ui/slider"
+import { Montserrat } from 'next/font/google'
 
 const montserrat = montserrat({ subsets: ['latin'] })
 
