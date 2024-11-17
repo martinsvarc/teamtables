@@ -5,31 +5,7 @@ import { DateRange } from "react-day-picker"
 import { useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import { useState } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { PlayCircle, ChevronDown, BarChart2, Star, PhoneCall, ArrowUpDown, Search, CalendarIcon, Info, ChevronLeft, ChevronRight, CalendarRange, Menu, Pause, SkipBack, SkipForward } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Calendar } from "@/components/ui/calendar"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
-import { Montserrat } from 'next/font/google'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Slider } from "@/components/ui/slider"
+// ... (keep your existing imports)
 
 const montserrat = Montserrat({ subsets: ['latin'] })
 
@@ -42,20 +18,35 @@ const buttonStyle = "flex items-center gap-2 rounded-full text-white hover:bg-op
 type SortDirection = 'asc' | 'desc'
 type SortType = 'standard' | 'name' | 'consistency' | 'effectiveness' | 'date'
 
-interface ScoreCellProps {
-  score: number
-  description: string
-  title: string
-  color: string
-}
-
-interface AudioPlayerProps {
-  audioSrc: string
-  caller: string
+interface TeamMember {
+  user_id: string;
+  user_name: string;
+  user_picture_url: string;
+  trainings_today: number;
+  this_week: number;
+  this_month: number;
+  total_trainings: number;
+  current_streak: number;
+  longest_streak: number;
+  avg_overall: number;
+  avg_engagement: number;
+  avg_objection: number;
+  avg_information: number;
+  avg_program: number;
+  avg_closing: number;
+  avg_effectiveness: number;
+  overall_summary: string;
+  engagement_summary: string;
+  objection_summary: string;
+  information_summary: string;
+  program_summary: string;
+  closing_summary: string;
+  effectiveness_summary: string;
 }
 
 interface CallRecord {
   id: number;
+  user_id: string;
   user_name: string;
   user_picture_url: string;
   assistant_name: string;
@@ -78,103 +69,98 @@ interface CallRecord {
   effectiveness_text: string;
 }
 
-interface Stats {
-  trainingsToday: number;
-  thisWeek: number;
-  thisMonth: number;
-  total: number;
-  currentStreak: number;
-  longestStreak: number;
+interface DatabaseData {
+  teamMembers: TeamMember[];
+  currentUser: TeamMember | null;
+  recentCalls: CallRecord[];
+}
+
+// Props interfaces
+interface ScoreCellProps {
+  score: number;
+  description: string;
+  title: string;
+  color: string;
+}
+
+interface AudioPlayerProps {
+  audioSrc: string;
+  caller: string;
 }
 
 interface ComponentProps {
-  initialData?: {
-    stats: Stats;
-    ratings: {
-      overall: { score: number; description: string };
-      engagement: { score: number; description: string };
-      objection: { score: number; description: string };
-      information: { score: number; description: string };
-      program: { score: number; description: string };
-      closing: { score: number; description: string };
-      effectiveness: { score: number; description: string };
-    };
-    user: {
-      id: string;
-      name: string;
-      picture: string;
-    };
-    recentCalls: CallRecord[];
-  };
+  initialData?: DatabaseData;
 }
-
 // Helper Functions
-const filterData = <T extends { name: string }>(data: T[], searchTerm: string): T[] => {
-  if (!searchTerm) return data
-  const lowercaseSearch = searchTerm.toLowerCase()
+const filterData = <T extends { user_name: string }>(data: T[], searchTerm: string): T[] => {
+  if (!searchTerm) return data;
+  const lowercaseSearch = searchTerm.toLowerCase();
   return data.filter(item => 
-    item.name.toLowerCase().includes(lowercaseSearch)
-  )
-}
+    item.user_name.toLowerCase().includes(lowercaseSearch)
+  );
+};
 
 const sortData = <T extends Record<string, any>>(
   data: T[],
   sortType: SortType,
   direction: SortDirection
 ): T[] => {
-  const sortedData = [...data]
+  const sortedData = [...data];
 
   switch (sortType) {
     case 'name':
       return sortedData.sort((a, b) => {
-        const comparison = a.name.localeCompare(b.name)
-        return direction === 'asc' ? comparison : -comparison
-      })
+        const comparison = a.user_name.localeCompare(b.user_name);
+        return direction === 'asc' ? comparison : -comparison;
+      });
     
     case 'consistency':
       return sortedData.sort((a, b) => {
-        const comparison = (a.consistency || 0) - (b.consistency || 0)
-        return direction === 'asc' ? comparison : -comparison
-      })
+        const aConsistency = Math.round((a.this_month / 30) * 100);
+        const bConsistency = Math.round((b.this_month / 30) * 100);
+        const comparison = aConsistency - bConsistency;
+        return direction === 'asc' ? comparison : -comparison;
+      });
     
     case 'effectiveness':
       return sortedData.sort((a, b) => {
-        const comparison = (a.effectiveness || 0) - (b.effectiveness || 0)
-        return direction === 'asc' ? comparison : -comparison
-      })
+        const comparison = (a.avg_effectiveness || 0) - (b.avg_effectiveness || 0);
+        return direction === 'asc' ? comparison : -comparison;
+      });
     
     case 'date':
       return sortedData.sort((a, b) => {
-        const dateA = new Date(a.date).getTime()
-        const dateB = new Date(b.date).getTime()
-        const comparison = dateA - dateB
-        return direction === 'asc' ? comparison : -comparison
-      })
+        const dateA = new Date(a.call_date).getTime();
+        const dateB = new Date(b.call_date).getTime();
+        const comparison = dateA - dateB;
+        return direction === 'asc' ? comparison : -comparison;
+      });
     
     default:
-      return sortedData
+      return sortedData;
   }
-}
+};
 
 const formatDateRange = (dateRange: DateRange | undefined) => {
-  if (!dateRange) return "All time"
-  const { from, to } = dateRange
+  if (!dateRange) return "All time";
+  const { from, to } = dateRange;
   
-  if (!from) return "All time"
-  if (!to) return from.toLocaleDateString()
+  if (!from) return "All time";
+  if (!to) return from.toLocaleDateString();
   
-  const diffTime = Math.abs(to.getTime() - from.getTime())
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const diffTime = Math.abs(to.getTime() - from.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
-  if (diffDays <= 7) return "Last 7 Days"
-  if (diffDays <= 14) return "Last 14 Days"
-  if (diffDays <= 30) return "Last 30 Days"
+  if (diffDays <= 7) return "Last 7 Days";
+  if (diffDays <= 14) return "Last 14 Days";
+  if (diffDays <= 30) return "Last 30 Days";
   
-  return `${from.toLocaleDateString()} - ${to.toLocaleDateString()}`
-}
+  return `${from.toLocaleDateString()} - ${to.toLocaleDateString()}`;
+};
+
 // Sub-components
 const ScoreCell: React.FC<ScoreCellProps> = ({ score, description, title, color }) => {
-  const [isHovered, setIsHovered] = useState(false)
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <Popover>
@@ -200,50 +186,50 @@ const ScoreCell: React.FC<ScoreCellProps> = ({ score, description, title, color 
         </div>
       </PopoverContent>
     </Popover>
-  )
-}
+  );
+};
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioSrc, caller }) => {
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const audioRef = React.useRef<HTMLAudioElement>(null)
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = React.useRef<HTMLAudioElement>(null);
 
   const togglePlayPause = () => {
     if (audioRef.current) {
       if (isPlaying) {
-        audioRef.current.pause()
+        audioRef.current.pause();
       } else {
-        audioRef.current.play()
+        audioRef.current.play();
       }
-      setIsPlaying(!isPlaying)
+      setIsPlaying(!isPlaying);
     }
-  }
+  };
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime)
+      setCurrentTime(audioRef.current.currentTime);
     }
-  }
+  };
 
   const handleLoadedMetadata = () => {
     if (audioRef.current) {
-      setDuration(audioRef.current.duration)
+      setDuration(audioRef.current.duration);
     }
-  }
+  };
 
   const handleSliderChange = (value: number[]) => {
     if (audioRef.current) {
-      audioRef.current.currentTime = value[0]
-      setCurrentTime(value[0])
+      audioRef.current.currentTime = value[0];
+      setCurrentTime(value[0]);
     }
-  }
+  };
 
   const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`
-  }
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="flex flex-col items-center space-y-4 p-4">
@@ -277,90 +263,162 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioSrc, caller }) => {
         <span className="text-sm">{formatTime(duration)}</span>
       </div>
     </div>
-  )
-}
+  );
+};
+const Component: React.FC<ComponentProps> = ({ initialData }) => {
+  const searchParams = useSearchParams();
+  const memberId = searchParams.get('memberId');
+  const teamId = searchParams.get('teamId');
 
-// Sample Data Arrays
-const activityData = [
-  { name: "Sarah Johnson", avatar: "SJ", trainingsToday: 3, thisWeek: 15, thisMonth: 45, total: 180, currentStreak: 7, longestStreak: 15, consistency: 85 },
-  { name: "Michael Chen", avatar: "MC", trainingsToday: 4, thisWeek: 18, thisMonth: 52, total: 195, currentStreak: 9, longestStreak: 18, consistency: 92 },
-  { name: "Emma Davis", avatar: "ED", trainingsToday: 2, thisWeek: 12, thisMonth: 38, total: 165, currentStreak: 5, longestStreak: 12, consistency: 78 },
-  { name: "James Wilson", avatar: "JW", trainingsToday: 5, thisWeek: 19, thisMonth: 55, total: 198, currentStreak: 10, longestStreak: 20, consistency: 95 },
-  { name: "Olivia Brown", avatar: "OB", trainingsToday: 3, thisWeek: 14, thisMonth: 42, total: 175, currentStreak: 6, longestStreak: 14, consistency: 82 },
-]
-
-const ratingsData = [
-  { name: "Sarah Johnson", avatar: "SJ", overall: 85, engagement: 87, objection: 83, information: 86, program: 84, closing: 82, effectiveness: 85 },
-  { name: "Michael Chen", avatar: "MC", overall: 92, engagement: 93, objection: 90, information: 94, program: 91, closing: 89, effectiveness: 92 },
-  { name: "Emma Davis", avatar: "ED", overall: 78, engagement: 80, objection: 77, information: 79, program: 76, closing: 75, effectiveness: 78 },
-  { name: "James Wilson", avatar: "JW", overall: 95, engagement: 96, objection: 94, information: 95, program: 93, closing: 92, effectiveness: 95 },
-  { name: "Olivia Brown", avatar: "OB", overall: 82, engagement: 84, objection: 81, information: 83, program: 80, closing: 79, effectiveness: 82 },
-]
-
-const callLogsData = [
-  { name: "David Anderson", avatar: "DA", date: "11/13/2024", caller: "Mike", callerAvatar: "M", audioSrc: "/sample-audio.mp3", performance: 88, engagement: 90, objection: 85, information: 89, program: 87, closing: 86, effectiveness: 88 },
-  { name: "Megan Taylor", avatar: "MT", date: "11/13/2024", caller: "Tison", callerAvatar: "T", audioSrc: "/sample-audio.mp3", performance: 92, engagement: 93, objection: 90, information: 94, program: 91, closing: 89, effectiveness: 92 },
-  { name: "Sarah Williams", avatar: "SW", date: "11/14/2024", caller: "Chris", callerAvatar: "C", audioSrc: "/sample-audio.mp3", performance: 85, engagement: 87, objection: 83, information: 86, program: 84, closing: 82, effectiveness: 85 },
-  { name: "John Martinez", avatar: "JM", date: "11/14/2024", caller: "Peter", callerAvatar: "P", audioSrc: "/sample-audio.mp3", performance: 95, engagement: 96, objection: 94, information: 95, program: 93, closing: 92, effectiveness: 95 },
-  { name: "Emma Thompson", avatar: "ET", date: "11/15/2024", caller: "Steve", callerAvatar: "S", audioSrc: "/sample-audio.mp3", performance: 89, engagement: 91, objection: 87, information: 90, program: 88, closing: 86, effectiveness: 89 },
-]
-const Component = () => {
   // State declarations
-  const [showMoreActivity, setShowMoreActivity] = useState(false)
-  const [showMoreRatings, setShowMoreRatings] = useState(false)
-  const [showMoreCallLogs, setShowMoreCallLogs] = useState(false)
-  const [date, setDate] = React.useState<DateRange | undefined>(undefined)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [activitySearch, setActivitySearch] = useState("")
-  const [ratingsSearch, setRatingsSearch] = useState("")
-  const [callLogsSearch, setCallLogsSearch] = useState("")
-  const [selectedAudio, setSelectedAudio] = useState<{ src: string; caller: string } | null>(null)
+  const [data, setData] = useState<DatabaseData | null>(initialData || null);
+  const [isLoading, setIsLoading] = useState(!initialData);
+  const [error, setError] = useState<string | null>(null);
+
+  // UI States
+  const [showMoreActivity, setShowMoreActivity] = useState(false);
+  const [showMoreRatings, setShowMoreRatings] = useState(false);
+  const [showMoreCallLogs, setShowMoreCallLogs] = useState(false);
+  const [date, setDate] = React.useState<DateRange | undefined>(undefined);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activitySearch, setActivitySearch] = useState("");
+  const [ratingsSearch, setRatingsSearch] = useState("");
+  const [callLogsSearch, setCallLogsSearch] = useState("");
+  const [selectedAudio, setSelectedAudio] = useState<{ src: string; caller: string } | null>(null);
 
   // Sort states
   const [activitySort, setActivitySort] = useState<{ type: SortType; direction: SortDirection }>({
     type: 'standard',
     direction: 'asc'
-  })
+  });
   const [ratingsSort, setRatingsSort] = useState<{ type: SortType; direction: SortDirection }>({
     type: 'standard',
     direction: 'asc'
-  })
+  });
   const [callLogsSort, setCallLogsSort] = useState<{ type: SortType; direction: SortDirection }>({
     type: 'standard',
     direction: 'asc'
-  })
+  });
+
+  // Data fetching
+  useEffect(() => {
+    if ((!initialData && memberId && teamId) || searchParams.get('refresh')) {
+      fetchData();
+    }
+  }, [memberId, teamId, initialData]);
+
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `/api/call-records?memberId=${memberId}&teamId=${teamId}`
+      );
+      if (!response.ok) throw new Error('Failed to fetch data');
+      const newData = await response.json();
+      setData(newData);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Handler functions
   const handleQuickSelection = (days: number) => {
-    const to = new Date()
-    const from = new Date()
-    from.setDate(to.getDate() - days)
-    setDate({ from, to })
-  }
+    const to = new Date();
+    const from = new Date();
+    from.setDate(to.getDate() - days);
+    setDate({ from, to });
+  };
 
-  // Filtered data
-  const filteredActivityData = sortData(
-    filterData(activityData, activitySearch),
-    activitySort.type,
-    activitySort.direction
-  )
+  // Data processing
+  const processTeamData = () => {
+    if (!data) return {
+      filteredActivityData: [],
+      filteredRatingsData: [],
+      filteredCallLogsData: []
+    };
 
-  const filteredRatingsData = sortData(
-    filterData(ratingsData, ratingsSearch),
-    ratingsSort.type,
-    ratingsSort.direction
-  )
+    // Process Activity Data
+    const activityData = data.teamMembers.map(member => ({
+      user_id: member.user_id,
+      user_name: member.user_name,
+      user_picture_url: member.user_picture_url,
+      trainingsToday: member.trainings_today,
+      thisWeek: member.this_week,
+      thisMonth: member.this_month,
+      total: member.total_trainings,
+      currentStreak: member.current_streak,
+      longestStreak: member.longest_streak,
+      consistency: Math.round((member.this_month / 30) * 100)
+    }));
 
-  const filteredCallLogsData = sortData(
-    filterData(callLogsData, callLogsSearch),
-    callLogsSort.type,
-    callLogsSort.direction
-  )
+    // Process Ratings Data
+    const ratingsData = data.teamMembers.map(member => ({
+      user_id: member.user_id,
+      user_name: member.user_name,
+      user_picture_url: member.user_picture_url,
+      overall: member.avg_overall,
+      engagement: member.avg_engagement,
+      objection: member.avg_objection,
+      information: member.avg_information,
+      program: member.avg_program,
+      closing: member.avg_closing,
+      effectiveness: member.avg_effectiveness,
+      descriptions: {
+        overall: member.overall_summary,
+        engagement: member.engagement_summary,
+        objection: member.objection_summary,
+        information: member.information_summary,
+        program: member.program_summary,
+        closing: member.closing_summary,
+        effectiveness: member.effectiveness_summary
+      }
+    }));
+
+    // Process Call Logs
+    const callLogsData = data.recentCalls;
+
+    // Apply filters and sorting
+    const filteredActivityData = sortData(
+      filterData(activityData, activitySearch),
+      activitySort.type,
+      activitySort.direction
+    );
+
+    const filteredRatingsData = sortData(
+      filterData(ratingsData, ratingsSearch),
+      ratingsSort.type,
+      ratingsSort.direction
+    );
+
+    const filteredCallLogsData = sortData(
+      filterData(callLogsData, callLogsSearch),
+      callLogsSort.type,
+      callLogsSort.direction
+    );
+
+    return {
+      filteredActivityData,
+      filteredRatingsData,
+      filteredCallLogsData
+    };
+  };
+
+  // Get processed data
+  const { filteredActivityData, filteredRatingsData, filteredCallLogsData } = processTeamData();
 
   // Visible data
-  const visibleActivityData = showMoreActivity ? filteredActivityData : filteredActivityData.slice(0, 5)
-  const visibleRatingsData = showMoreRatings ? filteredRatingsData : filteredRatingsData.slice(0, 5)
-  const visibleCallLogsData = showMoreCallLogs ? filteredCallLogsData : filteredCallLogsData.slice(0, 5)
+  const visibleActivityData = showMoreActivity ? filteredActivityData : filteredActivityData.slice(0, 5);
+  const visibleRatingsData = showMoreRatings ? filteredRatingsData : filteredRatingsData.slice(0, 5);
+  const visibleCallLogsData = showMoreCallLogs ? filteredCallLogsData : filteredCallLogsData.slice(0, 5);
+
+  // Loading and error states
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!data) return <div>No data available</div>;
+// ... (continuing from the previous part)
 
   return (
     <div className={`flex h-screen bg-gray-100 ${montserrat.className}`}>
@@ -398,7 +456,7 @@ const Component = () => {
       <div className="flex-1 overflow-auto p-4 font-medium">
         <ScrollArea className="h-full">
           <div className="space-y-4">
-{/* Activity View */}
+            {/* Activity View */}
             <Card className={sectionStyle}>
               <div className={headerStyle}>
                 <div className="flex items-center gap-2 text-[#556bc7]">
@@ -465,13 +523,13 @@ const Component = () => {
                   </thead>
                   <tbody>
                     {visibleActivityData.map((user, index) => (
-                      <tr key={index} className="border-b">
+                      <tr key={user.user_id} className="border-b">
                         <td className="flex items-center gap-2 p-2">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={`/placeholder.svg?height=32&width=32`} />
-                            <AvatarFallback>{user.avatar}</AvatarFallback>
+                            <AvatarImage src={user.user_picture_url || `/placeholder.svg?height=32&width=32`} />
+                            <AvatarFallback>{user.user_name.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <span>{user.name}</span>
+                          <span>{user.user_name}</span>
                         </td>
                         <td className="p-2 text-center">{user.trainingsToday}</td>
                         <td className="p-2 text-center">{user.thisWeek}</td>
@@ -493,6 +551,8 @@ const Component = () => {
                 </button>
               </div>
             </Card>
+
+            {/* We'll continue with Ratings View and Call Logs in the next parts */}
 {/* Ratings View */}
             <Card className={sectionStyle}>
               <div className={headerStyle}>
@@ -559,35 +619,70 @@ const Component = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {visibleRatingsData.map((user, index) => (
-                      <tr key={index} className="border-b">
+                    {visibleRatingsData.map((user) => (
+                      <tr key={user.user_id} className="border-b">
                         <td className="flex items-center gap-2 p-2">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={`/placeholder.svg?height=32&width=32`} />
-                            <AvatarFallback>{user.avatar}</AvatarFallback>
+                            <AvatarImage src={user.user_picture_url || `/placeholder.svg?height=32&width=32`} />
+                            <AvatarFallback>{user.user_name.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <span>{user.name}</span>
+                          <span>{user.user_name}</span>
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={user.overall} title="Overall Performance" description="Overall performance score based on all evaluation criteria" color="[#51c1a9]" />
+                          <ScoreCell 
+                            score={user.overall} 
+                            title="Overall Performance" 
+                            description={user.descriptions.overall} 
+                            color="[#51c1a9]" 
+                          />
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={user.engagement} title="Engagement" description="Score for engagement and interaction with customers" color="[#51c1a9]" />
+                          <ScoreCell 
+                            score={user.engagement} 
+                            title="Engagement" 
+                            description={user.descriptions.engagement} 
+                            color="[#51c1a9]" 
+                          />
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={user.objection} title="Objection Handling" description="Effectiveness in addressing and resolving customer concerns and objections" color="[#51c1a9]" />
+                          <ScoreCell 
+                            score={user.objection} 
+                            title="Objection Handling" 
+                            description={user.descriptions.objection} 
+                            color="[#51c1a9]" 
+                          />
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={user.information} title="Information Gathering" description="Ability to collect relevant information from customers" color="[#51c1a9]" />
+                          <ScoreCell 
+                            score={user.information} 
+                            title="Information Gathering" 
+                            description={user.descriptions.information} 
+                            color="[#51c1a9]" 
+                          />
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={user.program} title="Program Explanation" description="Clarity and effectiveness in explaining programs and services" color="[#51c1a9]" />
+                          <ScoreCell 
+                            score={user.program} 
+                            title="Program Explanation" 
+                            description={user.descriptions.program} 
+                            color="[#51c1a9]" 
+                          />
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={user.closing} title="Closing Skills" description="Success in closing deals and achieving sales objectives" color="[#51c1a9]" />
+                          <ScoreCell 
+                            score={user.closing} 
+                            title="Closing Skills" 
+                            description={user.descriptions.closing} 
+                            color="[#51c1a9]" 
+                          />
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={user.effectiveness} title="Overall Effectiveness" description="Overall impact and effectiveness in customer interactions" color="[#51c1a9]" />
+                          <ScoreCell 
+                            score={user.effectiveness} 
+                            title="Overall Effectiveness" 
+                            description={user.descriptions.effectiveness} 
+                            color="[#51c1a9]" 
+                          />
                         </td>
                       </tr>
                     ))}
@@ -602,6 +697,8 @@ const Component = () => {
                 </button>
               </div>
             </Card>
+
+            {/* Next we'll add the Call Logs table */}
 {/* Call Logs */}
             <Card className={sectionStyle}>
               <div className={headerStyle}>
@@ -734,20 +831,20 @@ const Component = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {visibleCallLogsData.map((log, index) => (
-                      <tr key={index} className="border-b">
+                    {visibleCallLogsData.map((log) => (
+                      <tr key={log.id} className="border-b">
                         <td className="flex items-center gap-2 p-2">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={`/placeholder.svg?height=32&width=32`} />
-                            <AvatarFallback>{log.avatar}</AvatarFallback>
+                            <AvatarImage src={log.user_picture_url || `/placeholder.svg?height=32&width=32`} />
+                            <AvatarFallback>{log.user_name.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <span>{log.name}</span>
+                          <span>{log.user_name}</span>
                         </td>
-                        <td className="p-2 text-center">{log.date}</td>
+                        <td className="p-2 text-center">{new Date(log.call_date).toLocaleDateString()}</td>
                         <td className="p-2 text-center">
                           <Avatar className="h-8 w-8 mx-auto">
-                            <AvatarImage src={`/placeholder.svg?height=32&width=32`} />
-                            <AvatarFallback>{log.callerAvatar}</AvatarFallback>
+                            <AvatarImage src={log.assistant_picture_url || `/placeholder.svg?height=32&width=32`} />
+                            <AvatarFallback>{log.assistant_name.charAt(0)}</AvatarFallback>
                           </Avatar>
                         </td>
                         <td className="p-2 text-center">
@@ -761,30 +858,65 @@ const Component = () => {
                               <DialogHeader>
                                 <DialogTitle>Call Recording</DialogTitle>
                               </DialogHeader>
-                              <AudioPlayer audioSrc={log.audioSrc} caller={log.caller} />
+                              <AudioPlayer audioSrc={log.recording_url} caller={log.assistant_name} />
                             </DialogContent>
                           </Dialog>
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={log.performance} title="Overall Performance" description="Overall performance score based on the call evaluation" color="[#fbb350]" />
+                          <ScoreCell 
+                            score={log.overall_performance} 
+                            title="Overall Performance" 
+                            description={log.overall_performance_text} 
+                            color="[#fbb350]" 
+                          />
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={log.engagement} title="Engagement" description="Score for engagement and interaction with the caller" color="[#fbb350]" />
+                          <ScoreCell 
+                            score={log.engagement_score} 
+                            title="Engagement" 
+                            description={log.engagement_text} 
+                            color="[#fbb350]" 
+                          />
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={log.objection} title="Objection Handling" description="Effectiveness in handling objections during the call" color="[#fbb350]" />
+                          <ScoreCell 
+                            score={log.objection_handling_score} 
+                            title="Objection Handling" 
+                            description={log.objection_handling_text} 
+                            color="[#fbb350]" 
+                          />
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={log.information} title="Information Gathering" description="Ability to gather relevant information from the caller" color="[#fbb350]" />
+                          <ScoreCell 
+                            score={log.information_gathering_score} 
+                            title="Information Gathering" 
+                            description={log.information_gathering_text} 
+                            color="[#fbb350]" 
+                          />
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={log.program} title="Program Explanation" description="Clarity and effectiveness in explaining the program" color="[#fbb350]" />
+                          <ScoreCell 
+                            score={log.program_explanation_score} 
+                            title="Program Explanation" 
+                            description={log.program_explanation_text} 
+                            color="[#fbb350]" 
+                          />
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={log.closing} title="Closing Skills" description="Success in closing and achieving call objectives" color="[#fbb350]" />
+                          <ScoreCell 
+                            score={log.closing_score} 
+                            title="Closing Skills" 
+                            description={log.closing_text} 
+                            color="[#fbb350]" 
+                          />
                         </td>
                         <td className="p-2 text-center">
-                          <ScoreCell score={log.effectiveness} title="Overall Effectiveness" description="Overall effectiveness and impact of the call" color="[#fbb350]" />
+                          <ScoreCell 
+                            score={log.effectiveness_score} 
+                            title="Overall Effectiveness" 
+                            description={log.effectiveness_text} 
+                            color="[#fbb350]" 
+                          />
                         </td>
                       </tr>
                     ))}
@@ -799,11 +931,11 @@ const Component = () => {
                 </button>
               </div>
             </Card>
-</div>
+          </div>
         </ScrollArea>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Component
+export default Component;
