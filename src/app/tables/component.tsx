@@ -188,6 +188,10 @@ function AudioPlayer({ audioSrc, caller }: { audioSrc: string; caller: string })
   )
 }
 
+  const sectionStyle = "overflow-hidden border-none bg-white shadow-sm"
+  const headerStyle = "flex items-center justify-between border-b p-4"
+  const buttonStyle = "flex items-center gap-2 rounded-full text-white hover:bg-opacity-90"
+
 const Component = () => {
   const [showMoreActivity, setShowMoreActivity] = useState(false)
   const [showMoreRatings, setShowMoreRatings] = useState(false)
