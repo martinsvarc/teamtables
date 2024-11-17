@@ -161,11 +161,17 @@ export default function Component() {
     return `${date.toLocaleDateString()} - ${now.toLocaleDateString()}`
   }
 
-  const filterData = (data, query) => {
-    return data.filter(item => 
-      item.name.toLowerCase().includes(query.toLowerCase())
-    );
-  }
+ interface DataItem {
+  name: string;
+  avatar: string;
+  [key: string]: any;
+}
+
+const filterData = (data: DataItem[], query: string) => {
+  return data.filter(item => 
+    item.name.toLowerCase().includes(query.toLowerCase())
+  );
+}
 
   const filteredActivityData = filterData(activityData, activitySearch)
   const filteredRatingsData = filterData(ratingsData, ratingsSearch)
