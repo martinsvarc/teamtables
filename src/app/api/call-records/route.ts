@@ -7,15 +7,18 @@ export async function GET(request: Request) {
     const memberId = searchParams.get('memberId');
     const teamId = searchParams.get('teamId');
 
-    // Check if we have any data at all in the call_records table
-    const { rows: hasData } = await sql`
+    // Verify user has access to this team_id
+    const { rows: userCalls } = await sql`
       SELECT EXISTS (
-        SELECT 1 FROM call_records LIMIT 1
+        SELECT 1 FROM call_records 
+        WHERE user_id = ${memberId} 
+        AND team_id = ${teamId}
+        LIMIT 1
       );
     `;
 
-    // If no data exists at all, return empty structure
-    if (!hasData[0].exists) {
+    // If user isn't part of this team, return empty data
+    if (!userCalls[0].exists) {
       return NextResponse.json({
         teamMembers: [],
         currentUser: null,
@@ -121,8 +124,6 @@ export async function GET(request: Request) {
       LIMIT 50;
     `;
 
-    // Even if we have data, some queries might return empty results
-    // So we ensure we always return arrays (empty if no results)
     return NextResponse.json({
       teamMembers: teamStats || [],
       currentUser: teamStats?.find(member => member.user_id === memberId) || null,
@@ -131,8 +132,6 @@ export async function GET(request: Request) {
 
   } catch (error) {
     console.error('API Route Error:', error);
-    
-    // On error, return empty structure instead of error response
     return NextResponse.json({
       teamMembers: [],
       currentUser: null,
