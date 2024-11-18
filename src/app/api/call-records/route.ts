@@ -1,6 +1,17 @@
 import { sql } from "@vercel/postgres";
 import { NextResponse } from "next/server";
 
+// Add OPTIONS method to handle CORS preflight requests
+export async function OPTIONS() {
+  return NextResponse.json({}, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -144,7 +155,18 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
 
-    // Insert the record
+    // Validate required fields
+    if (!data.user_id || !data.team_id) {
+      return NextResponse.json({
+        error: 'Missing required fields: user_id and team_id are required'
+      }, { 
+        status: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        }
+      });
+    }
+
     const { rows } = await sql`
       INSERT INTO call_records (
         user_id,
@@ -178,33 +200,33 @@ export async function POST(request: Request) {
         team_id
       ) VALUES (
         ${data.user_id},
-        ${data.user_name},
-        ${data.user_picture_url},
-        ${data.assistant_name},
-        ${data.assistant_picture_url},
-        ${data.recording_url},
-        ${data.call_date},
-        ${data.overall_performance},
-        ${data.engagement_score},
-        ${data.objection_handling_score},
-        ${data.information_gathering_score},
-        ${data.program_explanation_score},
-        ${data.closing_score},
-        ${data.effectiveness_score},
-        ${data.overall_performance_text},
-        ${data.engagement_text},
-        ${data.objection_handling_text},
-        ${data.information_gathering_text},
-        ${data.program_explanation_text},
-        ${data.closing_text},
-        ${data.effectiveness_text},
-        ${data.ratings_overall_summary},
-        ${data.ratings_engagement_summary},
-        ${data.ratings_objection_summary},
-        ${data.ratings_information_summary},
-        ${data.ratings_program_summary},
-        ${data.ratings_closing_summary},
-        ${data.ratings_effectiveness_summary},
+        ${data.user_name || ''},
+        ${data.user_picture_url || ''},
+        ${data.assistant_name || ''},
+        ${data.assistant_picture_url || ''},
+        ${data.recording_url || ''},
+        ${data.call_date || new Date().toISOString()},
+        ${data.overall_performance || 0},
+        ${data.engagement_score || 0},
+        ${data.objection_handling_score || 0},
+        ${data.information_gathering_score || 0},
+        ${data.program_explanation_score || 0},
+        ${data.closing_score || 0},
+        ${data.effectiveness_score || 0},
+        ${data.overall_performance_text || ''},
+        ${data.engagement_text || ''},
+        ${data.objection_handling_text || ''},
+        ${data.information_gathering_text || ''},
+        ${data.program_explanation_text || ''},
+        ${data.closing_text || ''},
+        ${data.effectiveness_text || ''},
+        ${data.ratings_overall_summary || ''},
+        ${data.ratings_engagement_summary || ''},
+        ${data.ratings_objection_summary || ''},
+        ${data.ratings_information_summary || ''},
+        ${data.ratings_program_summary || ''},
+        ${data.ratings_closing_summary || ''},
+        ${data.ratings_effectiveness_summary || ''},
         ${data.team_id}
       ) RETURNING *;
     `;
@@ -212,13 +234,23 @@ export async function POST(request: Request) {
     return NextResponse.json({
       message: 'Record created successfully',
       record: rows[0]
-    }, { status: 201 });
+    }, { 
+      status: 201,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      }
+    });
 
   } catch (error) {
     console.error('API Route Error:', error);
     return NextResponse.json({
       error: 'Failed to create record',
       details: error.message
-    }, { status: 500 });
+    }, { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      }
+    });
   }
 }
