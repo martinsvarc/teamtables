@@ -1,7 +1,6 @@
 import { sql } from "@vercel/postgres";
 import { NextResponse } from "next/server";
 
-// Add OPTIONS method to handle CORS preflight requests
 export async function OPTIONS() {
   return NextResponse.json({}, {
     headers: {
@@ -141,7 +140,7 @@ export async function GET(request: Request) {
       recentCalls: recentCalls || []
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('API Route Error:', error);
     return NextResponse.json({
       teamMembers: [],
@@ -241,11 +240,11 @@ export async function POST(request: Request) {
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('API Route Error:', error);
     return NextResponse.json({
       error: 'Failed to create record',
-      details: error.message
+      details: error?.message || 'Unknown error'
     }, { 
       status: 500,
       headers: {
