@@ -105,7 +105,7 @@ interface ComponentProps {
 // Props interfaces
 interface ScoreCellProps {
   score: number;
-  description: string;
+  description: string | undefined;
   title: string;
   color: string;
 }
@@ -659,7 +659,7 @@ const processTeamData = () => {
                           <ScoreCell 
                             score={user.overall} 
                             title="Overall Performance" 
-                            description={user.descriptions.overall} 
+                            description={user.descriptions?.overall || 'No description available'} // Added fallback
                             color="[#51c1a9]" 
                           />
                         </td>
@@ -667,7 +667,7 @@ const processTeamData = () => {
                           <ScoreCell 
                             score={user.engagement} 
                             title="Engagement" 
-                            description={user.descriptions.engagement} 
+                            description={user.descriptions?.engagement || 'No description available'}
                             color="[#51c1a9]" 
                           />
                         </td>
@@ -675,7 +675,7 @@ const processTeamData = () => {
                           <ScoreCell 
                             score={user.objection} 
                             title="Objection Handling" 
-                            description={user.descriptions.objection} 
+                            description={user.descriptions?.objection || 'No description available'}
                             color="[#51c1a9]" 
                           />
                         </td>
@@ -683,7 +683,7 @@ const processTeamData = () => {
                           <ScoreCell 
                             score={user.information} 
                             title="Information Gathering" 
-                            description={user.descriptions.information} 
+                            description={user.descriptions?.information || 'No description available'}
                             color="[#51c1a9]" 
                           />
                         </td>
@@ -691,7 +691,7 @@ const processTeamData = () => {
                           <ScoreCell 
                             score={user.program} 
                             title="Program Explanation" 
-                            description={user.descriptions.program} 
+                            description={user.descriptions?.program || 'No description available'} 
                             color="[#51c1a9]" 
                           />
                         </td>
@@ -699,15 +699,15 @@ const processTeamData = () => {
                           <ScoreCell 
                             score={user.closing} 
                             title="Closing Skills" 
-                            description={user.descriptions.closing} 
+                            description={user.descriptions?.closing || 'No description available'}
                             color="[#51c1a9]" 
                           />
                         </td>
                         <td className="p-2 text-center">
                           <ScoreCell 
                             score={user.effectiveness} 
-                            title="Overall Effectiveness" 
-                            description={user.descriptions.effectiveness} 
+                            title="Effectiveness" 
+                            description={user.descriptions?.effectiveness || 'No description available'}
                             color="[#51c1a9]" 
                           />
                         </td>
@@ -893,7 +893,7 @@ const processTeamData = () => {
                           <ScoreCell 
                             score={log.overall_performance} 
                             title="Overall Performance" 
-                            description={log.overall_performance_text} 
+                            description={log.overall_performance_text || 'No description available'}
                             color="[#fbb350]" 
                           />
                         </td>
@@ -901,7 +901,7 @@ const processTeamData = () => {
                           <ScoreCell 
                             score={log.engagement_score} 
                             title="Engagement" 
-                            description={log.engagement_text} 
+                            description={log.engagement_text || 'No description available'}
                             color="[#fbb350]" 
                           />
                         </td>
@@ -909,7 +909,7 @@ const processTeamData = () => {
                           <ScoreCell 
                             score={log.objection_handling_score} 
                             title="Objection Handling" 
-                            description={log.objection_handling_text} 
+                            description={log.objection_handling_text || 'No description available'}
                             color="[#fbb350]" 
                           />
                         </td>
@@ -917,7 +917,7 @@ const processTeamData = () => {
                           <ScoreCell 
                             score={log.information_gathering_score} 
                             title="Information Gathering" 
-                            description={log.information_gathering_text} 
+                            description={log.information_gathering_text || 'No description available'}
                             color="[#fbb350]" 
                           />
                         </td>
@@ -925,7 +925,7 @@ const processTeamData = () => {
                           <ScoreCell 
                             score={log.program_explanation_score} 
                             title="Program Explanation" 
-                            description={log.program_explanation_text} 
+                            description={log.program_explanation_text || 'No description available'}
                             color="[#fbb350]" 
                           />
                         </td>
@@ -933,15 +933,15 @@ const processTeamData = () => {
                           <ScoreCell 
                             score={log.closing_score} 
                             title="Closing Skills" 
-                            description={log.closing_text} 
+                            description={log.closing_text || 'No description available'}
                             color="[#fbb350]" 
                           />
                         </td>
                         <td className="p-2 text-center">
                           <ScoreCell 
                             score={log.effectiveness_score} 
-                            title="Overall Effectiveness" 
-                            description={log.effectiveness_text} 
+                            title="Effectiveness" 
+                            description={log.effectiveness_text || 'No description available'}
                             color="[#fbb350]" 
                           />
                         </td>
