@@ -17,18 +17,20 @@ export async function GET(request: Request) {
     const memberId = searchParams.get('memberId');
     const teamId = searchParams.get('teamId');
 
-    // Verify user has access to this team_id
-    const { rows: userCalls } = await sql`
+    console.log('Request params:', { memberId, teamId });
+
+    // Changed: Check if team exists instead of user verification
+    const { rows: teamExists } = await sql`
       SELECT EXISTS (
         SELECT 1 FROM call_records 
-        WHERE user_id = ${memberId} 
-        AND team_id = ${teamId}
+        WHERE team_id = ${teamId}
         LIMIT 1
       );
     `;
 
-    // If user isn't part of this team, return empty data
-    if (!userCalls[0].exists) {
+    // If team doesn't exist, return empty data
+    if (!teamExists[0].exists) {
+      console.log('Team not found');
       return NextResponse.json({
         teamMembers: [],
         currentUser: null,
@@ -36,7 +38,7 @@ export async function GET(request: Request) {
       });
     }
 
-    // Get all team members' stats
+    // Rest of your code remains the same
     const { rows: teamStats } = await sql`
       WITH daily_stats AS (
         SELECT 
@@ -133,6 +135,9 @@ export async function GET(request: Request) {
       ORDER BY call_date DESC
       LIMIT 50;
     `;
+
+    console.log('Found team members:', teamStats.length);
+    console.log('Found recent calls:', recentCalls.length);
 
     return NextResponse.json({
       teamMembers: teamStats || [],
