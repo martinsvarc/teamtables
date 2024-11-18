@@ -1,17 +1,28 @@
-// app/api/call-records/route.ts
 import { sql } from "@vercel/postgres";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const memberId = searchParams.get('memberId');
-  const teamId = searchParams.get('teamId');
-
-  if (!memberId || !teamId) {
-    return NextResponse.json({ error: 'Member ID and Team ID are required' }, { status: 400 });
-  }
-
   try {
+    const { searchParams } = new URL(request.url);
+    const memberId = searchParams.get('memberId');
+    const teamId = searchParams.get('teamId');
+
+    // Check if we have any data at all in the call_records table
+    const { rows: hasData } = await sql`
+      SELECT EXISTS (
+        SELECT 1 FROM call_records LIMIT 1
+      );
+    `;
+
+    // If no data exists at all, return empty structure
+    if (!hasData[0].exists) {
+      return NextResponse.json({
+        teamMembers: [],
+        currentUser: null,
+        recentCalls: []
+      });
+    }
+
     // Get all team members' stats
     const { rows: teamStats } = await sql`
       WITH daily_stats AS (
@@ -107,17 +118,25 @@ export async function GET(request: Request) {
       FROM call_records
       WHERE team_id = ${teamId}
       ORDER BY call_date DESC
-      LIMIT 5;
+      LIMIT 50;
     `;
 
+    // Even if we have data, some queries might return empty results
+    // So we ensure we always return arrays (empty if no results)
     return NextResponse.json({
-      teamMembers: teamStats,
-      currentUser: teamStats.find(member => member.user_id === memberId) || null,
-      recentCalls
+      teamMembers: teamStats || [],
+      currentUser: teamStats?.find(member => member.user_id === memberId) || null,
+      recentCalls: recentCalls || []
     });
 
   } catch (error) {
-    console.error('Error:', error);
-    return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
+    console.error('API Route Error:', error);
+    
+    // On error, return empty structure instead of error response
+    return NextResponse.json({
+      teamMembers: [],
+      currentUser: null,
+      recentCalls: []
+    });
   }
 }
