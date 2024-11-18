@@ -448,7 +448,7 @@ const processTeamData = () => {
 // ... (continuing from the previous part)
 
   return (
-    <div className={`flex h-screen bg-gray-100 ${montserrat.className}`}>
+<div className={`flex h-screen bg-gray-100 ${montserratFont.className}`}>
       {/* Sidebar */}
       <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
         <SheetTrigger asChild>
