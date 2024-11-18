@@ -3,7 +3,7 @@ import { TeamMember, CallRecord } from '@/types';
 
 export async function getTeamMembers() {
   try {
-    const { rows } = await sql`
+    const { rows } = await sql<TeamMember>`
       SELECT * FROM team_members
     `;
     return rows;
@@ -15,7 +15,7 @@ export async function getTeamMembers() {
 
 export async function getCallRecords() {
   try {
-    const { rows } = await sql`
+    const { rows } = await sql<CallRecord>`
       SELECT * FROM call_records
     `;
     return rows;
@@ -27,7 +27,7 @@ export async function getCallRecords() {
 
 export async function getCurrentUser(userId: string) {
   try {
-    const { rows } = await sql`
+    const { rows } = await sql<TeamMember>`
       SELECT * FROM team_members
       WHERE user_id = ${userId}
       LIMIT 1
