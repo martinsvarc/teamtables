@@ -3,35 +3,14 @@ import Component from './component';
 
 async function getData() {
   try {
-    // Default IDs for initial load - you can adjust these values
-    const memberId = 'user1';  // Replace with your default user ID
-    const teamId = 'team1';    // Replace with your default team ID
-
-    // Construct the URL, accounting for different environments
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : 'http://localhost:3000';
-
-    // Call your existing API route
-    const response = await fetch(
-      `${baseUrl}/api/call-records?memberId=${memberId}&teamId=${teamId}`,
-      {
-        method: 'GET',
-        cache: 'no-store',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch data: ${response.statusText}`);
-    }
-
-    // This data is already transformed by your route.ts
-    return await response.json();
+    // Since database is empty, we'll return an empty but properly structured data object
+    return {
+      teamMembers: [],  // Empty array for team members
+      currentUser: null, // No current user
+      recentCalls: []   // Empty array for calls
+    };
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error('getData Error:', error);
     throw error;
   }
 }
@@ -50,10 +29,11 @@ export default async function Page() {
       </Suspense>
     );
   } catch (error) {
+    console.error('Page Error:', error);
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-lg font-semibold text-red-500">
-          Error loading data. Please try again later.
+          Something went wrong. Please try again later.
         </div>
       </div>
     );
