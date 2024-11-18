@@ -139,3 +139,86 @@ export async function GET(request: Request) {
     });
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+
+    // Insert the record
+    const { rows } = await sql`
+      INSERT INTO call_records (
+        user_id,
+        user_name,
+        user_picture_url,
+        assistant_name,
+        assistant_picture_url,
+        recording_url,
+        call_date,
+        overall_performance,
+        engagement_score,
+        objection_handling_score,
+        information_gathering_score,
+        program_explanation_score,
+        closing_score,
+        effectiveness_score,
+        overall_performance_text,
+        engagement_text,
+        objection_handling_text,
+        information_gathering_text,
+        program_explanation_text,
+        closing_text,
+        effectiveness_text,
+        ratings_overall_summary,
+        ratings_engagement_summary,
+        ratings_objection_summary,
+        ratings_information_summary,
+        ratings_program_summary,
+        ratings_closing_summary,
+        ratings_effectiveness_summary,
+        team_id
+      ) VALUES (
+        ${data.user_id},
+        ${data.user_name},
+        ${data.user_picture_url},
+        ${data.assistant_name},
+        ${data.assistant_picture_url},
+        ${data.recording_url},
+        ${data.call_date},
+        ${data.overall_performance},
+        ${data.engagement_score},
+        ${data.objection_handling_score},
+        ${data.information_gathering_score},
+        ${data.program_explanation_score},
+        ${data.closing_score},
+        ${data.effectiveness_score},
+        ${data.overall_performance_text},
+        ${data.engagement_text},
+        ${data.objection_handling_text},
+        ${data.information_gathering_text},
+        ${data.program_explanation_text},
+        ${data.closing_text},
+        ${data.effectiveness_text},
+        ${data.ratings_overall_summary},
+        ${data.ratings_engagement_summary},
+        ${data.ratings_objection_summary},
+        ${data.ratings_information_summary},
+        ${data.ratings_program_summary},
+        ${data.ratings_closing_summary},
+        ${data.ratings_effectiveness_summary},
+        ${data.team_id}
+      ) RETURNING *;
+    `;
+
+    return NextResponse.json({
+      message: 'Record created successfully',
+      record: rows[0]
+    }, { status: 201 });
+
+  } catch (error) {
+    console.error('API Route Error:', error);
+    return NextResponse.json({
+      error: 'Failed to create record',
+      details: error.message
+    }, { status: 500 });
+  }
+}
