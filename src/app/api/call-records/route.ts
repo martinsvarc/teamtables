@@ -27,12 +27,27 @@ export async function GET(request: Request) {
     }
 
     const { rows: teamStats } = await sql`
-      WITH daily_stats AS (
-        SELECT 
+      WITH latest_user_data AS (
+        SELECT DISTINCT ON (user_id)
           user_id,
-          -- Take user info from their latest call
-          MAX(user_name) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as user_name,
-          MAX(user_picture_url) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as user_picture_url,
+          user_name,
+          user_picture_url,
+          ratings_overall_summary,
+          ratings_engagement_summary,
+          ratings_objection_summary,
+          ratings_information_summary,
+          ratings_program_summary,
+          ratings_closing_summary,
+          ratings_effectiveness_summary
+        FROM call_records
+        WHERE team_id = ${teamId}
+        ORDER BY user_id, call_date DESC
+      ),
+      daily_stats AS (
+        SELECT 
+          cr.user_id,
+          lud.user_name,
+          lud.user_picture_url,
           COUNT(DISTINCT DATE(call_date)) FILTER (WHERE DATE(call_date) = CURRENT_DATE) as trainings_today,
           COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
             DATE(call_date) >= DATE_TRUNC('week', CURRENT_DATE) AND 
@@ -50,17 +65,27 @@ export async function GET(request: Request) {
           ROUND(AVG(program_explanation_score::numeric)) as avg_program,
           ROUND(AVG(closing_score::numeric)) as avg_closing,
           ROUND(AVG(effectiveness_score::numeric)) as avg_effectiveness,
-          -- Take latest summaries
-          MAX(ratings_overall_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as overall_summary,
-          MAX(ratings_engagement_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as engagement_summary,
-          MAX(ratings_objection_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as objection_summary,
-          MAX(ratings_information_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as information_summary,
-          MAX(ratings_program_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as program_summary,
-          MAX(ratings_closing_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as closing_summary,
-          MAX(ratings_effectiveness_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as effectiveness_summary
-        FROM call_records
-        WHERE team_id = ${teamId}
-        GROUP BY user_id
+          lud.ratings_overall_summary as overall_summary,
+          lud.ratings_engagement_summary as engagement_summary,
+          lud.ratings_objection_summary as objection_summary,
+          lud.ratings_information_summary as information_summary,
+          lud.ratings_program_summary as program_summary,
+          lud.ratings_closing_summary as closing_summary,
+          lud.ratings_effectiveness_summary as effectiveness_summary
+        FROM call_records cr
+        JOIN latest_user_data lud ON cr.user_id = lud.user_id
+        WHERE cr.team_id = ${teamId}
+        GROUP BY 
+          cr.user_id, 
+          lud.user_name,
+          lud.user_picture_url,
+          lud.ratings_overall_summary,
+          lud.ratings_engagement_summary,
+          lud.ratings_objection_summary,
+          lud.ratings_information_summary,
+          lud.ratings_program_summary,
+          lud.ratings_closing_summary,
+          lud.ratings_effectiveness_summary
       ),
       daily_activity AS (
         SELECT DISTINCT
@@ -125,37 +150,41 @@ export async function GET(request: Request) {
     `;
 
     const { rows: recentCalls } = await sql`
+      WITH latest_user_info AS (
+        SELECT DISTINCT ON (user_id)
+          user_id,
+          user_name,
+          user_picture_url
+        FROM call_records
+        ORDER BY user_id, call_date DESC
+      )
       SELECT 
-        id,
-        user_id,
-        -- Use the latest user info for each call
-        (SELECT user_name FROM call_records 
-         WHERE user_id = cr.user_id 
-         ORDER BY call_date DESC LIMIT 1) as user_name,
-        (SELECT user_picture_url FROM call_records 
-         WHERE user_id = cr.user_id 
-         ORDER BY call_date DESC LIMIT 1) as user_picture_url,
-        assistant_name,
-        assistant_picture_url,
-        recording_url,
-        call_date,
-        overall_performance,
-        engagement_score,
-        objection_handling_score,
-        information_gathering_score,
-        program_explanation_score,
-        closing_score,
-        effectiveness_score,
-        overall_performance_text,
-        engagement_text,
-        objection_handling_text,
-        information_gathering_text,
-        program_explanation_text,
-        closing_text,
-        effectiveness_text
+        cr.id,
+        cr.user_id,
+        lui.user_name,
+        lui.user_picture_url,
+        cr.assistant_name,
+        cr.assistant_picture_url,
+        cr.recording_url,
+        cr.call_date,
+        cr.overall_performance,
+        cr.engagement_score,
+        cr.objection_handling_score,
+        cr.information_gathering_score,
+        cr.program_explanation_score,
+        cr.closing_score,
+        cr.effectiveness_score,
+        cr.overall_performance_text,
+        cr.engagement_text,
+        cr.objection_handling_text,
+        cr.information_gathering_text,
+        cr.program_explanation_text,
+        cr.closing_text,
+        cr.effectiveness_text
       FROM call_records cr
-      WHERE team_id = ${teamId}
-      ORDER BY call_date DESC
+      JOIN latest_user_info lui ON cr.user_id = lui.user_id
+      WHERE cr.team_id = ${teamId}
+      ORDER BY cr.call_date DESC
       LIMIT 50;
     `;
 
