@@ -30,37 +30,6 @@ export async function GET(request: Request) {
       });
     }
 
-    // Check total records in database
-    const { rows: totalRecords } = await sql`
-      SELECT COUNT(*) FROM call_records;
-    `;
-    console.log('Total records in database:', totalRecords[0].count);
-
-    // Check records for specific team
-    const { rows: teamRecords } = await sql`
-      SELECT COUNT(*) FROM call_records 
-      WHERE team_id = ${teamId};
-    `;
-    console.log('Records for team:', teamRecords[0].count);
-
-    // Check records for specific member
-    const { rows: memberRecords } = await sql`
-      SELECT COUNT(*) FROM call_records 
-      WHERE team_id = ${teamId} 
-      AND user_id = ${memberId};
-    `;
-    console.log('Records for member:', memberRecords[0].count);
-
-    // If no records exist for this team, return early
-    if (parseInt(teamRecords[0].count) === 0) {
-      console.log('No records found for team');
-      return NextResponse.json({
-        teamMembers: [],
-        currentUser: null,
-        recentCalls: []
-      });
-    }
-
     // Get team statistics
     const { rows: teamStats } = await sql`
       WITH daily_stats AS (
@@ -68,17 +37,17 @@ export async function GET(request: Request) {
           user_id,
           user_name,
           user_picture_url,
-          COUNT(*) FILTER (WHERE DATE(call_date) = CURRENT_DATE) as trainings_today,
-          COUNT(*) FILTER (WHERE call_date >= CURRENT_DATE - INTERVAL '7 days') as this_week,
-          COUNT(*) FILTER (WHERE DATE_TRUNC('month', call_date) = DATE_TRUNC('month', CURRENT_DATE)) as this_month,
+          COUNT(*) FILTER (WHERE DATE(call_date::timestamp) = CURRENT_DATE) as trainings_today,
+          COUNT(*) FILTER (WHERE call_date::timestamp >= CURRENT_DATE - INTERVAL '7 days') as this_week,
+          COUNT(*) FILTER (WHERE DATE_TRUNC('month', call_date::timestamp) = DATE_TRUNC('month', CURRENT_DATE)) as this_month,
           COUNT(*) as total_trainings,
-          ROUND(AVG(overall_performance)) as avg_overall,
-          ROUND(AVG(engagement_score)) as avg_engagement,
-          ROUND(AVG(objection_handling_score)) as avg_objection,
-          ROUND(AVG(information_gathering_score)) as avg_information,
-          ROUND(AVG(program_explanation_score)) as avg_program,
-          ROUND(AVG(closing_score)) as avg_closing,
-          ROUND(AVG(effectiveness_score)) as avg_effectiveness,
+          ROUND(AVG(overall_performance::numeric)) as avg_overall,
+          ROUND(AVG(engagement_score::numeric)) as avg_engagement,
+          ROUND(AVG(objection_handling_score::numeric)) as avg_objection,
+          ROUND(AVG(information_gathering_score::numeric)) as avg_information,
+          ROUND(AVG(program_explanation_score::numeric)) as avg_program,
+          ROUND(AVG(closing_score::numeric)) as avg_closing,
+          ROUND(AVG(effectiveness_score::numeric)) as avg_effectiveness,
           MAX(ratings_overall_summary) as overall_summary,
           MAX(ratings_engagement_summary) as engagement_summary,
           MAX(ratings_objection_summary) as objection_summary,
@@ -93,11 +62,11 @@ export async function GET(request: Request) {
       streak_calc AS (
         SELECT 
           user_id,
-          DATE(call_date) as call_date,
-          DATE(call_date) - 
-          ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY DATE(call_date)) * INTERVAL '1 day' as streak_group
+          DATE(call_date::timestamp) as call_date,
+          DATE(call_date::timestamp) - 
+          ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY DATE(call_date::timestamp)) * INTERVAL '1 day' as streak_group
         FROM (
-          SELECT DISTINCT user_id, DATE(call_date)
+          SELECT DISTINCT user_id, call_date
           FROM call_records
           WHERE team_id = ${teamId}
         ) distinct_dates
@@ -128,8 +97,6 @@ export async function GET(request: Request) {
       FROM daily_stats d;
     `;
 
-    console.log('Team stats found:', teamStats.length);
-
     // Get recent calls
     const { rows: recentCalls } = await sql`
       SELECT 
@@ -157,40 +124,20 @@ export async function GET(request: Request) {
         effectiveness_text
       FROM call_records
       WHERE team_id = ${teamId}
-      ORDER BY call_date DESC
+      ORDER BY call_date::timestamp DESC
       LIMIT 50;
     `;
 
-    console.log('Recent calls found:', recentCalls.length);
-
-    // Find current user
-    const currentUser = teamStats.find(member => member.user_id === memberId);
-    console.log('Current user found:', currentUser ? 'yes' : 'no');
-
     const response = {
       teamMembers: teamStats || [],
-      currentUser: currentUser || null,
+      currentUser: teamStats?.find(member => member.user_id === memberId) || null,
       recentCalls: recentCalls || []
     };
-
-    console.log('Response summary:', {
-      teamMembersCount: response.teamMembers.length,
-      hasCurrentUser: !!response.currentUser,
-      recentCallsCount: response.recentCalls.length
-    });
 
     return NextResponse.json(response);
 
   } catch (error: any) {
     console.error('API Route Error:', error);
-    // Log detailed error information
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code,
-      detail: error.detail
-    });
-
     return NextResponse.json({
       error: 'Failed to fetch data',
       details: error?.message || 'Unknown error',
@@ -204,11 +151,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    console.log('Received POST data:', data);
 
-    // Validate required fields
     if (!data.user_id || !data.team_id) {
-      console.log('Missing required fields');
       return NextResponse.json({
         error: 'Missing required fields: user_id and team_id are required'
       }, { 
@@ -282,8 +226,6 @@ export async function POST(request: Request) {
         ${data.team_id}
       ) RETURNING *;
     `;
-
-    console.log('Record created successfully:', rows[0].id);
 
     return NextResponse.json({
       message: 'Record created successfully',
