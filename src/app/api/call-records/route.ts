@@ -30,16 +30,14 @@ export async function GET(request: Request) {
       WITH daily_stats AS (
         SELECT 
           user_id,
-          user_name,
-          user_picture_url,
-          -- Today's trainings (unique days)
+          -- Take user info from their latest call
+          MAX(user_name) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as user_name,
+          MAX(user_picture_url) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as user_picture_url,
           COUNT(DISTINCT DATE(call_date)) FILTER (WHERE DATE(call_date) = CURRENT_DATE) as trainings_today,
-          -- This week's trainings (unique days)
           COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
             DATE(call_date) >= DATE_TRUNC('week', CURRENT_DATE) AND 
             DATE(call_date) <= CURRENT_DATE
           ) as this_week,
-          -- This month's trainings (unique days)
           COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
             DATE(call_date) >= DATE_TRUNC('month', CURRENT_DATE) AND 
             DATE(call_date) <= CURRENT_DATE
@@ -52,16 +50,17 @@ export async function GET(request: Request) {
           ROUND(AVG(program_explanation_score::numeric)) as avg_program,
           ROUND(AVG(closing_score::numeric)) as avg_closing,
           ROUND(AVG(effectiveness_score::numeric)) as avg_effectiveness,
-          MAX(ratings_overall_summary) as overall_summary,
-          MAX(ratings_engagement_summary) as engagement_summary,
-          MAX(ratings_objection_summary) as objection_summary,
-          MAX(ratings_information_summary) as information_summary,
-          MAX(ratings_program_summary) as program_summary,
-          MAX(ratings_closing_summary) as closing_summary,
-          MAX(ratings_effectiveness_summary) as effectiveness_summary
+          -- Take latest summaries
+          MAX(ratings_overall_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as overall_summary,
+          MAX(ratings_engagement_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as engagement_summary,
+          MAX(ratings_objection_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as objection_summary,
+          MAX(ratings_information_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as information_summary,
+          MAX(ratings_program_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as program_summary,
+          MAX(ratings_closing_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as closing_summary,
+          MAX(ratings_effectiveness_summary) FILTER (WHERE call_date = MAX(call_date) OVER (PARTITION BY user_id)) as effectiveness_summary
         FROM call_records
         WHERE team_id = ${teamId}
-        GROUP BY user_id, user_name, user_picture_url
+        GROUP BY user_id
       ),
       daily_activity AS (
         SELECT DISTINCT
@@ -88,7 +87,7 @@ export async function GET(request: Request) {
         GROUP BY user_id, group_id
       ),
       final_stats AS (
-        SELECT
+        SELECT DISTINCT
           d.*,
           COALESCE((
             SELECT s.streak_length
@@ -103,7 +102,6 @@ export async function GET(request: Request) {
             FROM streaks s
             WHERE s.user_id = d.user_id
           ), 0) as longest_streak,
-          -- Updated consistency calculation
           ROUND(
             (COUNT(DISTINCT DATE(cr.call_date))::numeric / 
              EXTRACT(DAY FROM CURRENT_DATE)::numeric * 100)
@@ -130,8 +128,13 @@ export async function GET(request: Request) {
       SELECT 
         id,
         user_id,
-        user_name,
-        user_picture_url,
+        -- Use the latest user info for each call
+        (SELECT user_name FROM call_records 
+         WHERE user_id = cr.user_id 
+         ORDER BY call_date DESC LIMIT 1) as user_name,
+        (SELECT user_picture_url FROM call_records 
+         WHERE user_id = cr.user_id 
+         ORDER BY call_date DESC LIMIT 1) as user_picture_url,
         assistant_name,
         assistant_picture_url,
         recording_url,
@@ -150,7 +153,7 @@ export async function GET(request: Request) {
         program_explanation_text,
         closing_text,
         effectiveness_text
-      FROM call_records
+      FROM call_records cr
       WHERE team_id = ${teamId}
       ORDER BY call_date DESC
       LIMIT 50;
