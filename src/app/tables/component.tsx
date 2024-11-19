@@ -359,12 +359,11 @@ const Component: React.FC<ComponentProps> = ({ initialData }) => {
     setDate({ from, to });
   };
 
-// Data processing
 const processTeamData = () => {
   console.log('Processing data:', data);
   
-  if (!data) {
-    console.log('No data to process');
+  if (!data?.teamMembers) {
+    console.log('No team members data');
     return {
       filteredActivityData: [],
       filteredRatingsData: [],
@@ -383,7 +382,7 @@ const processTeamData = () => {
     total: parseInt(member.total_trainings) || 0,
     currentStreak: parseInt(member.current_streak) || 0,
     longestStreak: parseInt(member.longest_streak) || 0,
-    consistency: Math.round((parseInt(member.this_month) / 30) * 100) || 0
+    consistency: Math.round((parseInt(member.this_month || '0') / 30) * 100)
   }));
 
   // Process Ratings Data
@@ -399,13 +398,13 @@ const processTeamData = () => {
     closing: parseInt(member.avg_closing) || 0,
     effectiveness: parseInt(member.avg_effectiveness) || 0,
     descriptions: {
-      overall: member.ratings_overall_summary,
-      engagement: member.ratings_engagement_summary,
-      objection: member.ratings_objection_summary,
-      information: member.ratings_information_summary,
-      program: member.ratings_program_summary,
-      closing: member.ratings_closing_summary,
-      effectiveness: member.ratings_effectiveness_summary
+      overall: member.ratings_overall_summary || '',
+      engagement: member.ratings_engagement_summary || '',
+      objection: member.ratings_objection_summary || '',
+      information: member.ratings_information_summary || '',
+      program: member.ratings_program_summary || '',
+      closing: member.ratings_closing_summary || '',
+      effectiveness: member.ratings_effectiveness_summary || ''
     }
   }));
 
@@ -418,7 +417,7 @@ const processTeamData = () => {
     information_gathering_score: parseInt(log.information_gathering_score) || 0,
     program_explanation_score: parseInt(log.program_explanation_score) || 0,
     closing_score: parseInt(log.closing_score) || 0,
-    effectiveness_score: parseInt(log.effectiveness_score) || 0,
+    effectiveness_score: parseInt(log.effectiveness_score) || 0
   }));
 
   // Apply filters and sorting
