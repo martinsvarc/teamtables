@@ -111,11 +111,12 @@ export async function GET(request: Request) {
             WHERE s.user_id = d.user_id
           ), 0) as longest_streak,
           -- Updated consistency calculation
-          ROUND(
-            (COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
-              DATE(call_date) >= DATE_TRUNC('month', CURRENT_DATE)
-            )::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
-          ) as consistency_this_month
+         ROUND(
+  (COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
+    EXTRACT(MONTH FROM call_date) = EXTRACT(MONTH FROM CURRENT_DATE) AND
+    EXTRACT(YEAR FROM call_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+  )::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
+) as consistency_this_month
         FROM daily_stats d
       )
       SELECT * FROM final_stats;
