@@ -136,6 +136,8 @@ const { rows: teamStats } = await sql`
         ) as consistency_this_month
       FROM daily_stats d;
     `;
+      SELECT * FROM final_stats;
+    `;
 
     // Get recent calls (keeping this part unchanged as it works)
     const { rows: recentCalls } = await sql`
