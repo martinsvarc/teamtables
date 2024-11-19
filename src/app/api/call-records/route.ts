@@ -38,9 +38,10 @@ export async function GET(request: Request) {
         WHERE team_id = ${teamId};
       `;
       console.log('Debug: Basic query result:', testRows);
-    } catch (e) {
-      console.error('Debug: Basic query failed:', e);
-      throw new Error(`Basic query failed: ${e.message}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Debug: Basic query failed:', errorMessage);
+      throw new Error(`Basic query failed: ${errorMessage}`);
     }
 
     // Now let's try a simple version of the stats
@@ -89,23 +90,24 @@ export async function GET(request: Request) {
 
       return NextResponse.json(response);
 
-    } catch (queryError) {
-      console.error('Debug: Main query failed:', queryError);
-      throw new Error(`Main query failed: ${queryError.message}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Debug: Main query failed:', errorMessage);
+      throw new Error(`Main query failed: ${errorMessage}`);
     }
 
-  } catch (error: any) {
-    console.error('Debug: Full error details:', {
-      message: error.message,
-      stack: error.stack,
-      cause: error.cause,
-      name: error.name,
-      code: error.code
-    });
+  } catch (error) {
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error occurred',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    };
+
+    console.error('Debug: Full error details:', errorDetails);
 
     return NextResponse.json({
       error: 'Failed to fetch data',
-      details: error?.message || 'Unknown error',
+      details: errorDetails.message,
       teamMembers: [],
       currentUser: null,
       recentCalls: []
@@ -202,11 +204,13 @@ export async function POST(request: Request) {
       }
     });
 
-  } catch (error: any) {
-    console.error('API Route Error:', error);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('API Route Error:', errorMessage);
+    
     return NextResponse.json({
       error: 'Failed to create record',
-      details: error?.message || 'Unknown error'
+      details: errorMessage
     }, { 
       status: 500,
       headers: {
