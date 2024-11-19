@@ -359,40 +359,45 @@ const Component: React.FC<ComponentProps> = ({ initialData }) => {
     setDate({ from, to });
   };
 
-  // Data processing
+// Data processing
 const processTeamData = () => {
-  if (!data) return {
-    filteredActivityData: [],
-    filteredRatingsData: [],
-    filteredCallLogsData: []
-  };
+  console.log('Processing data:', data);
+  
+  if (!data) {
+    console.log('No data to process');
+    return {
+      filteredActivityData: [],
+      filteredRatingsData: [],
+      filteredCallLogsData: []
+    };
+  }
 
-    // Process Activity Data
-    const activityData = data.teamMembers.map(member => ({
+  // Process Activity Data
+  const activityData = data.teamMembers.map(member => ({
     user_id: member.user_id,
     user_name: member.user_name,
     user_picture_url: member.user_picture_url,
-    trainingsToday: member.trainings_today,
-    thisWeek: member.this_week,
-    thisMonth: member.this_month,
-    total: member.total_trainings,
-    currentStreak: member.current_streak,
-    longestStreak: member.longest_streak,
-    consistency: Math.round((member.this_month / 30) * 100)
+    trainingsToday: parseInt(member.trainings_today) || 0,
+    thisWeek: parseInt(member.this_week) || 0,
+    thisMonth: parseInt(member.this_month) || 0,
+    total: parseInt(member.total_trainings) || 0,
+    currentStreak: parseInt(member.current_streak) || 0,
+    longestStreak: parseInt(member.longest_streak) || 0,
+    consistency: Math.round((parseInt(member.this_month) / 30) * 100) || 0
   }));
 
-    // Process Ratings Data
-    const ratingsData = data.teamMembers.map(member => ({
+  // Process Ratings Data
+  const ratingsData = data.teamMembers.map(member => ({
     user_id: member.user_id,
     user_name: member.user_name,
     user_picture_url: member.user_picture_url,
-    overall: member.avg_overall,
-    engagement: member.avg_engagement,
-    objection: member.avg_objection,
-    information: member.avg_information,
-    program: member.avg_program,
-    closing: member.avg_closing,
-    effectiveness: member.avg_effectiveness,
+    overall: parseInt(member.avg_overall) || 0,
+    engagement: parseInt(member.avg_engagement) || 0,
+    objection: parseInt(member.avg_objection) || 0,
+    information: parseInt(member.avg_information) || 0,
+    program: parseInt(member.avg_program) || 0,
+    closing: parseInt(member.avg_closing) || 0,
+    effectiveness: parseInt(member.avg_effectiveness) || 0,
     descriptions: {
       overall: member.ratings_overall_summary,
       engagement: member.ratings_engagement_summary,
@@ -404,29 +409,44 @@ const processTeamData = () => {
     }
   }));
 
-    // Process Call Logs
-  const callLogsData = data.recentCalls;
+  // Process Call Logs
+  const callLogsData = data.recentCalls.map(log => ({
+    ...log,
+    overall_performance: parseInt(log.overall_performance) || 0,
+    engagement_score: parseInt(log.engagement_score) || 0,
+    objection_handling_score: parseInt(log.objection_handling_score) || 0,
+    information_gathering_score: parseInt(log.information_gathering_score) || 0,
+    program_explanation_score: parseInt(log.program_explanation_score) || 0,
+    closing_score: parseInt(log.closing_score) || 0,
+    effectiveness_score: parseInt(log.effectiveness_score) || 0,
+  }));
 
-    // Apply filters and sorting
-    const filteredActivityData = sortData(
+  // Apply filters and sorting
+  const filteredActivityData = sortData(
     filterData(activityData, activitySearch),
     activitySort.type,
     activitySort.direction
   );
 
-   const filteredRatingsData = sortData(
+  const filteredRatingsData = sortData(
     filterData(ratingsData, ratingsSearch),
     ratingsSort.type,
     ratingsSort.direction
   );
 
-    const filteredCallLogsData = sortData(
+  const filteredCallLogsData = sortData(
     filterData(callLogsData, callLogsSearch),
     callLogsSort.type,
     callLogsSort.direction
   );
 
-    return {
+  console.log('Processed data:', {
+    filteredActivityData,
+    filteredRatingsData,
+    filteredCallLogsData
+  });
+
+  return {
     filteredActivityData,
     filteredRatingsData,
     filteredCallLogsData
