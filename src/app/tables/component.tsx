@@ -297,6 +297,8 @@ const Component: React.FC<ComponentProps> = ({ initialData }) => {
   const memberId = searchParams.get('memberId');
   const teamId = searchParams.get('teamId');
 
+  console.log('1. Initial Data received:', initialData);
+
   // State declarations
   const [data, setData] = useState<DatabaseData | null>(initialData || null);
   const [isLoading, setIsLoading] = useState(!initialData);
@@ -334,22 +336,19 @@ const Component: React.FC<ComponentProps> = ({ initialData }) => {
     }
   }, [memberId, teamId, initialData]);
 
-  const fetchData = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(
-        `/api/call-records?memberId=${memberId}&teamId=${teamId}`
-      );
-      if (!response.ok) throw new Error('Failed to fetch data');
-      const newData = await response.json();
-      setData(newData);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+ const fetchData = async () => {
+  try {
+    setIsLoading(true);
+    console.log('2. Starting fetch with:', { memberId, teamId });
+    const response = await fetch(
+      `/api/call-records?memberId=${memberId}&teamId=${teamId}`
+    );
+    if (!response.ok) throw new Error('Failed to fetch data');
+    const newData = await response.json();
+    console.log('3. Fetch response:', newData);
+    setData(newData);
+    setError(null);
+  } catch (err) {
 
   // Handler functions
   const handleQuickSelection = (days: number) => {
@@ -465,6 +464,12 @@ const processTeamData = () => {
   if (error) return <div>Error: {error}</div>;
   if (!data) return <div>No data available</div>;
 // ... (continuing from the previous part)
+
+ console.log('4. Processed data:', {
+    activityData: visibleActivityData,
+    ratingsData: visibleRatingsData,
+    callLogsData: visibleCallLogsData
+  });
 
   return (
 <div className={`flex h-screen bg-gray-100 ${montserratFont.className}`}>
