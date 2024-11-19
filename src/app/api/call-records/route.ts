@@ -17,10 +17,7 @@ export async function GET(request: Request) {
     const memberId = searchParams.get('memberId');
     const teamId = searchParams.get('teamId');
 
-    console.log('Received request with params:', { memberId, teamId });
-
     if (!memberId || !teamId) {
-      console.log('Missing required parameters');
       return NextResponse.json({
         error: 'Missing required parameters',
         teamMembers: [],
@@ -29,22 +26,21 @@ export async function GET(request: Request) {
       });
     }
 
-    // Updated team statistics with fixed calculations
     const { rows: teamStats } = await sql`
       WITH daily_stats AS (
         SELECT 
           user_id,
           user_name,
           user_picture_url,
-          -- Today's trainings
-          COUNT(*) FILTER (WHERE DATE(call_date) = CURRENT_DATE) as trainings_today,
-          -- This week's trainings
-          COUNT(*) FILTER (WHERE 
+          -- Today's trainings (unique days)
+          COUNT(DISTINCT DATE(call_date)) FILTER (WHERE DATE(call_date) = CURRENT_DATE) as trainings_today,
+          -- This week's trainings (unique days)
+          COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
             DATE(call_date) >= DATE_TRUNC('week', CURRENT_DATE) AND 
             DATE(call_date) <= CURRENT_DATE
           ) as this_week,
-          -- This month's trainings
-          COUNT(*) FILTER (WHERE 
+          -- This month's trainings (unique days)
+          COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
             DATE(call_date) >= DATE_TRUNC('month', CURRENT_DATE) AND 
             DATE(call_date) <= CURRENT_DATE
           ) as this_month,
@@ -67,7 +63,6 @@ export async function GET(request: Request) {
         WHERE team_id = ${teamId}
         GROUP BY user_id, user_name, user_picture_url
       ),
-      -- Improved streak calculation
       daily_activity AS (
         SELECT DISTINCT
           user_id,
@@ -95,7 +90,6 @@ export async function GET(request: Request) {
       final_stats AS (
         SELECT
           d.*,
-          -- Current streak (only if there's activity today)
           COALESCE((
             SELECT s.streak_length
             FROM streaks s
@@ -104,22 +98,34 @@ export async function GET(request: Request) {
             ORDER BY s.streak_length DESC
             LIMIT 1
           ), 0) as current_streak,
-          -- Longest streak ever
           COALESCE((
             SELECT MAX(streak_length)
             FROM streaks s
             WHERE s.user_id = d.user_id
           ), 0) as longest_streak,
-          -- Calculate consistency (trainings this month / days in current month * 100)
+          -- Updated consistency calculation
           ROUND(
-            (this_month::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
+            (COUNT(DISTINCT DATE(cr.call_date))::numeric / 
+             EXTRACT(DAY FROM CURRENT_DATE)::numeric * 100)
           ) as consistency_this_month
         FROM daily_stats d
+        LEFT JOIN call_records cr ON 
+          cr.user_id = d.user_id AND
+          DATE(cr.call_date) >= DATE_TRUNC('month', CURRENT_DATE) AND
+          DATE(cr.call_date) <= CURRENT_DATE
+        GROUP BY 
+          d.user_id, d.user_name, d.user_picture_url, 
+          d.trainings_today, d.this_week, d.this_month,
+          d.total_trainings, d.avg_overall, d.avg_engagement,
+          d.avg_objection, d.avg_information, d.avg_program,
+          d.avg_closing, d.avg_effectiveness,
+          d.overall_summary, d.engagement_summary, d.objection_summary,
+          d.information_summary, d.program_summary, d.closing_summary,
+          d.effectiveness_summary
       )
       SELECT * FROM final_stats;
     `;
 
-    // Get recent calls
     const { rows: recentCalls } = await sql`
       SELECT 
         id,
@@ -150,13 +156,11 @@ export async function GET(request: Request) {
       LIMIT 50;
     `;
 
-    const response = {
+    return NextResponse.json({
       teamMembers: teamStats || [],
       currentUser: teamStats?.find(member => member.user_id === memberId) || null,
       recentCalls: recentCalls || []
-    };
-
-    return NextResponse.json(response);
+    });
 
   } catch (error: any) {
     console.error('API Route Error:', error);
@@ -214,7 +218,8 @@ export async function POST(request: Request) {
         ratings_program_summary,
         ratings_closing_summary,
         ratings_effectiveness_summary,
-        team_id
+        team_id,
+        call_date
       ) VALUES (
         ${data.user_id},
         ${data.user_name || ''},
@@ -243,7 +248,8 @@ export async function POST(request: Request) {
         ${data.ratings_program_summary || ''},
         ${data.ratings_closing_summary || ''},
         ${data.ratings_effectiveness_summary || ''},
-        ${data.team_id}
+        ${data.team_id},
+        CURRENT_TIMESTAMP
       ) RETURNING *;
     `;
 
