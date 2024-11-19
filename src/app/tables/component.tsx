@@ -45,26 +45,26 @@ interface TeamMember {
   user_id: string;
   user_name: string;
   user_picture_url: string;
-  trainings_today: number;  // Changed from trainingsToday
-  this_week: number;        // Changed from thisWeek
-  this_month: number;       // Changed from thisMonth
-  total_trainings: number;  // Changed from total
-  current_streak: number;   // Changed from currentStreak
-  longest_streak: number;   // Changed from longestStreak
-  avg_overall: number;
-  avg_engagement: number;
-  avg_objection: number;
-  avg_information: number;
-  avg_program: number;
-  avg_closing: number;
-  avg_effectiveness: number;
-  ratings_overall_summary?: string;     // Changed from overall_summary
-  ratings_engagement_summary?: string;   // Changed from engagement_summary
-  ratings_objection_summary?: string;    // Changed from objection_summary
-  ratings_information_summary?: string;  // Changed from information_summary
-  ratings_program_summary?: string;      // Changed from program_summary
-  ratings_closing_summary?: string;      // Changed from closing_summary
-  ratings_effectiveness_summary?: string; // Changed from effectiveness_summary
+  trainings_today: string;
+  this_week: string;
+  this_month: string;
+  total_trainings: string;
+  current_streak: string;
+  longest_streak: string;
+  avg_overall: string;
+  avg_engagement: string;
+  avg_objection: string;
+  avg_information: string;
+  avg_program: string;
+  avg_closing: string;
+  avg_effectiveness: string;
+  ratings_overall_summary?: string;
+  ratings_engagement_summary?: string;
+  ratings_objection_summary?: string;
+  ratings_information_summary?: string;
+  ratings_program_summary?: string;
+  ratings_closing_summary?: string;
+  ratings_effectiveness_summary?: string;
 }
 
 interface CallRecord {
@@ -76,13 +76,13 @@ interface CallRecord {
   assistant_picture_url: string;
   recording_url: string;
   call_date: string;
-  overall_performance: number;
-  engagement_score: number;
-  objection_handling_score: number;
-  information_gathering_score: number;
-  program_explanation_score: number;
-  closing_score: number;
-  effectiveness_score: number;
+  overall_performance: string;
+  engagement_score: string;
+  objection_handling_score: string;
+  information_gathering_score: string;
+  program_explanation_score: string;
+  closing_score: string;
+  effectiveness_score: string;
   overall_performance_text: string;
   engagement_text: string;
   objection_handling_text: string;
