@@ -48,15 +48,24 @@ export async function GET(request: Request) {
           cr.user_id,
           lud.user_name,
           lud.user_picture_url,
-          COUNT(DISTINCT DATE(call_date)) FILTER (WHERE DATE(call_date) = CURRENT_DATE) as trainings_today,
-          COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
-            DATE(call_date) >= DATE_TRUNC('week', CURRENT_DATE) AND 
-            DATE(call_date) <= CURRENT_DATE
-          ) as this_week,
-          COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
-            DATE(call_date) >= DATE_TRUNC('month', CURRENT_DATE) AND 
-            DATE(call_date) <= CURRENT_DATE
-          ) as this_month,
+          -- Today's trainings with timezone consideration
+          COUNT(DISTINCT CASE 
+            WHEN DATE_TRUNC('day', call_date AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague') = 
+                 DATE_TRUNC('day', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague')
+            THEN call_date 
+          END) as trainings_today,
+          -- This week's trainings
+          COUNT(DISTINCT CASE 
+            WHEN DATE_TRUNC('day', call_date AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague') >= 
+                 DATE_TRUNC('week', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague') 
+            THEN call_date 
+          END) as this_week,
+          -- This month's trainings
+          COUNT(DISTINCT CASE 
+            WHEN DATE_TRUNC('day', call_date AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague') >= 
+                 DATE_TRUNC('month', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague')
+            THEN call_date 
+          END) as this_month,
           COUNT(*) as total_trainings,
           ROUND(AVG(overall_performance::numeric)) as avg_overall,
           ROUND(AVG(engagement_score::numeric)) as avg_engagement,
@@ -90,7 +99,7 @@ export async function GET(request: Request) {
       daily_activity AS (
         SELECT DISTINCT
           user_id,
-          DATE(call_date) as activity_date
+          DATE_TRUNC('day', call_date AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague') as activity_date
         FROM call_records
         WHERE team_id = ${teamId}
         ORDER BY 1, 2
@@ -111,31 +120,34 @@ export async function GET(request: Request) {
         FROM streak_groups
         GROUP BY user_id, group_id
       ),
+      user_streaks AS (
+        SELECT 
+          user_id,
+          MAX(CASE 
+            WHEN streak_end = DATE_TRUNC('day', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague')
+            THEN streak_length 
+            ELSE 0 
+          END) as current_streak,
+          MAX(streak_length) as longest_streak
+        FROM streaks
+        GROUP BY user_id
+      ),
       final_stats AS (
         SELECT DISTINCT
           d.*,
-          COALESCE((
-            SELECT s.streak_length
-            FROM streaks s
-            WHERE s.user_id = d.user_id
-            AND s.streak_end = CURRENT_DATE
-            ORDER BY s.streak_length DESC
-            LIMIT 1
-          ), 0) as current_streak,
-          COALESCE((
-            SELECT MAX(streak_length)
-            FROM streaks s
-            WHERE s.user_id = d.user_id
-          ), 0) as longest_streak,
+          COALESCE(us.current_streak, 0) as current_streak,
+          COALESCE(us.longest_streak, 0) as longest_streak,
+          -- Consistency calculation: unique practice days / days in current month * 100
           ROUND(
-            (COUNT(DISTINCT DATE(cr.call_date))::numeric / 
-             EXTRACT(DAY FROM CURRENT_DATE)::numeric * 100)
+            (COUNT(DISTINCT DATE_TRUNC('day', cr.call_date AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague'))::numeric / 
+             EXTRACT(DAY FROM DATE_TRUNC('day', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague'))::numeric * 100)
           ) as consistency_this_month
         FROM daily_stats d
         LEFT JOIN call_records cr ON 
           cr.user_id = d.user_id AND
-          DATE(cr.call_date) >= DATE_TRUNC('month', CURRENT_DATE) AND
-          DATE(cr.call_date) <= CURRENT_DATE
+          DATE_TRUNC('month', cr.call_date AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague') = 
+          DATE_TRUNC('month', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague')
+        LEFT JOIN user_streaks us ON d.user_id = us.user_id
         GROUP BY 
           d.user_id, d.user_name, d.user_picture_url, 
           d.trainings_today, d.this_week, d.this_month,
@@ -144,7 +156,8 @@ export async function GET(request: Request) {
           d.avg_closing, d.avg_effectiveness,
           d.overall_summary, d.engagement_summary, d.objection_summary,
           d.information_summary, d.program_summary, d.closing_summary,
-          d.effectiveness_summary
+          d.effectiveness_summary,
+          us.current_streak, us.longest_streak
       )
       SELECT * FROM final_stats;
     `;
