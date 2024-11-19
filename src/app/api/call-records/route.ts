@@ -1,3 +1,16 @@
+import { sql } from "@vercel/postgres";
+import { NextResponse } from "next/server";
+
+export async function OPTIONS() {
+  return NextResponse.json({}, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -138,5 +151,124 @@ export async function GET(request: Request) {
       currentUser: null,
       recentCalls: []
     }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+
+    if (!data.user_id || !data.team_id) {
+      return NextResponse.json({
+        error: 'Missing required fields: user_id and team_id are required'
+      }, { 
+        status: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        }
+      });
+    }
+
+    // Generate current date in the required format
+    const now = new Date();
+    const formattedDate = now.toLocaleString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'GMT',
+      hour12: false
+    }) + ' GMT+0100 (GMT+01:00)';
+
+    const { rows } = await sql`
+      INSERT INTO call_records (
+        user_id,
+        user_name,
+        user_picture_url,
+        assistant_name,
+        assistant_picture_url,
+        recording_url,
+        call_date,
+        overall_performance,
+        engagement_score,
+        objection_handling_score,
+        information_gathering_score,
+        program_explanation_score,
+        closing_score,
+        effectiveness_score,
+        overall_performance_text,
+        engagement_text,
+        objection_handling_text,
+        information_gathering_text,
+        program_explanation_text,
+        closing_text,
+        effectiveness_text,
+        ratings_overall_summary,
+        ratings_engagement_summary,
+        ratings_objection_summary,
+        ratings_information_summary,
+        ratings_program_summary,
+        ratings_closing_summary,
+        ratings_effectiveness_summary,
+        team_id
+      ) VALUES (
+        ${data.user_id},
+        ${data.user_name || ''},
+        ${data.user_picture_url || ''},
+        ${data.assistant_name || ''},
+        ${data.assistant_picture_url || ''},
+        ${data.recording_url || ''},
+        ${formattedDate},
+        ${data.overall_performance || 0},
+        ${data.engagement_score || 0},
+        ${data.objection_handling_score || 0},
+        ${data.information_gathering_score || 0},
+        ${data.program_explanation_score || 0},
+        ${data.closing_score || 0},
+        ${data.effectiveness_score || 0},
+        ${data.overall_performance_text || ''},
+        ${data.engagement_text || ''},
+        ${data.objection_handling_text || ''},
+        ${data.information_gathering_text || ''},
+        ${data.program_explanation_text || ''},
+        ${data.closing_text || ''},
+        ${data.effectiveness_text || ''},
+        ${data.ratings_overall_summary || ''},
+        ${data.ratings_engagement_summary || ''},
+        ${data.ratings_objection_summary || ''},
+        ${data.ratings_information_summary || ''},
+        ${data.ratings_program_summary || ''},
+        ${data.ratings_closing_summary || ''},
+        ${data.ratings_effectiveness_summary || ''},
+        ${data.team_id}
+      ) RETURNING *;
+    `;
+
+    return NextResponse.json({
+      message: 'Record created successfully',
+      record: rows[0]
+    }, { 
+      status: 201,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      }
+    });
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('API Route Error:', errorMessage);
+    
+    return NextResponse.json({
+      error: 'Failed to create record',
+      details: errorMessage
+    }, { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      }
+    });
   }
 }
