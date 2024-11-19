@@ -30,25 +30,28 @@ export async function GET(request: Request) {
     }
 
     // Updated team statistics with fixed calculations
-    const { rows: teamStats } = await sql`
-      WITH daily_stats AS (
+const { rows: teamStats } = await sql`
+      WITH base_stats AS (
         SELECT 
           user_id,
           user_name,
           user_picture_url,
-          -- Today's trainings
-          COUNT(*) FILTER (WHERE DATE(call_date) = CURRENT_DATE) as trainings_today,
-          -- This week's trainings
-          COUNT(*) FILTER (WHERE 
-            DATE(call_date) >= DATE_TRUNC('week', CURRENT_DATE) AND 
-            DATE(call_date) <= CURRENT_DATE
-          ) as this_week,
-          -- This month's trainings
-          COUNT(*) FILTER (WHERE 
-            DATE(call_date) >= DATE_TRUNC('month', CURRENT_DATE) AND 
-            DATE(call_date) <= CURRENT_DATE
-          ) as this_month,
+          call_date::timestamp as parsed_date
+        FROM call_records
+        WHERE team_id = ${teamId}
+      ),
+      daily_stats AS (
+        SELECT 
+          user_id,
+          user_name,
+          user_picture_url,
           COUNT(*) as total_trainings,
+          COUNT(*) FILTER (WHERE DATE(parsed_date) = CURRENT_DATE) as trainings_today,
+          COUNT(*) FILTER (WHERE DATE(parsed_date) >= DATE_TRUNC('week', CURRENT_DATE)) as this_week,
+          COUNT(*) FILTER (WHERE DATE(parsed_date) >= DATE_TRUNC('month', CURRENT_DATE)) as this_month,
+          COUNT(DISTINCT DATE(parsed_date)) FILTER (
+            WHERE DATE(parsed_date) >= DATE_TRUNC('month', CURRENT_DATE)
+          ) as active_days_this_month,
           ROUND(AVG(overall_performance::numeric)) as avg_overall,
           ROUND(AVG(engagement_score::numeric)) as avg_engagement,
           ROUND(AVG(objection_handling_score::numeric)) as avg_objection,
@@ -63,62 +66,46 @@ export async function GET(request: Request) {
           MAX(ratings_program_summary) as program_summary,
           MAX(ratings_closing_summary) as closing_summary,
           MAX(ratings_effectiveness_summary) as effectiveness_summary
-        FROM call_records
-        WHERE team_id = ${teamId}
+        FROM base_stats
         GROUP BY user_id, user_name, user_picture_url
       ),
-      -- Improved streak calculation
-      daily_activity AS (
-        SELECT DISTINCT
+      active_dates AS (
+        SELECT 
           user_id,
-          DATE(call_date) as activity_date
-        FROM call_records
-        WHERE team_id = ${teamId}
-        ORDER BY 1, 2
-      ),
-      streak_groups AS (
-        SELECT
-          user_id,
-          activity_date,
-          activity_date - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY activity_date))::integer AS group_id
-        FROM daily_activity
+          DATE(parsed_date) as activity_date,
+          DATE(parsed_date) - ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY DATE(parsed_date)) as group_date
+        FROM base_stats
+        GROUP BY user_id, DATE(parsed_date)
       ),
       streaks AS (
         SELECT
           user_id,
           COUNT(*) as streak_length,
-          MIN(activity_date) as streak_start,
-          MAX(activity_date) as streak_end
-        FROM streak_groups
-        GROUP BY user_id, group_id
-      ),
-      final_stats AS (
-        SELECT
-          d.*,
-          -- Current streak (only if there's activity today)
-          COALESCE((
-            SELECT s.streak_length
-            FROM streaks s
-            WHERE s.user_id = d.user_id
-            AND s.streak_end = CURRENT_DATE
-            ORDER BY s.streak_length DESC
-            LIMIT 1
-          ), 0) as current_streak,
-          -- Longest streak ever
-          COALESCE((
-            SELECT MAX(streak_length)
-            FROM streaks s
-            WHERE s.user_id = d.user_id
-          ), 0) as longest_streak,
-          -- Calculate consistency (unique days this month / days passed in current month * 100)
-          ROUND(
-            (COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
-              DATE(call_date) >= DATE_TRUNC('month', CURRENT_DATE) AND 
-              DATE(call_date) <= CURRENT_DATE
-            )::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
-          ) as consistency_this_month
-        FROM daily_stats d
+          MIN(activity_date) as start_date,
+          MAX(activity_date) as end_date
+        FROM active_dates
+        GROUP BY user_id, group_date
       )
+      SELECT 
+        d.*,
+        COALESCE((
+          SELECT streak_length
+          FROM streaks s
+          WHERE s.user_id = d.user_id
+          AND s.end_date = CURRENT_DATE
+          LIMIT 1
+        ), 0) as current_streak,
+        COALESCE((
+          SELECT MAX(streak_length)
+          FROM streaks s
+          WHERE s.user_id = d.user_id
+        ), 0) as longest_streak,
+        ROUND(
+          (d.active_days_this_month::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
+        ) as consistency_this_month
+      FROM daily_stats d;
+    `;
+
       SELECT * FROM final_stats;
     `;
 
