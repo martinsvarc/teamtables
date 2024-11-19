@@ -364,10 +364,10 @@ const fetchData = async () => {
   };
 
 const processTeamData = () => {
-  console.log('Processing data:', data);
-  
-  if (!data?.teamMembers) {
-    console.log('No team members data');
+  console.log('Starting processTeamData with:', data);
+
+  if (!data || !Array.isArray(data.teamMembers)) {
+    console.log('No valid data to process');
     return {
       filteredActivityData: [],
       filteredRatingsData: [],
@@ -376,53 +376,62 @@ const processTeamData = () => {
   }
 
   // Process Activity Data
-  const activityData = data.teamMembers.map(member => ({
-    user_id: member.user_id,
-    user_name: member.user_name,
-    user_picture_url: member.user_picture_url,
-    trainingsToday: parseInt(member.trainings_today) || 0,
-    thisWeek: parseInt(member.this_week) || 0,
-    thisMonth: parseInt(member.this_month) || 0,
-    total: parseInt(member.total_trainings) || 0,
-    currentStreak: parseInt(member.current_streak) || 0,
-    longestStreak: parseInt(member.longest_streak) || 0,
-    consistency: Math.round((parseInt(member.this_month || '0') / 30) * 100)
-  }));
+  const activityData = data.teamMembers.map(member => {
+    console.log('Processing member for activity:', member);
+    return {
+      user_id: member.user_id,
+      user_name: member.user_name,
+      user_picture_url: member.user_picture_url,
+      trainingsToday: parseInt(member.trainings_today || '0'),
+      thisWeek: parseInt(member.this_week || '0'),
+      thisMonth: parseInt(member.this_month || '0'),
+      total: parseInt(member.total_trainings || '0'),
+      currentStreak: parseInt(member.current_streak || '0'),
+      longestStreak: parseInt(member.longest_streak || '0'),
+      consistency: Math.round((parseInt(member.this_month || '0') / 30) * 100)
+    };
+  });
+  console.log('Processed activityData:', activityData);
 
   // Process Ratings Data
-  const ratingsData = data.teamMembers.map(member => ({
-    user_id: member.user_id,
-    user_name: member.user_name,
-    user_picture_url: member.user_picture_url,
-    overall: parseInt(member.avg_overall) || 0,
-    engagement: parseInt(member.avg_engagement) || 0,
-    objection: parseInt(member.avg_objection) || 0,
-    information: parseInt(member.avg_information) || 0,
-    program: parseInt(member.avg_program) || 0,
-    closing: parseInt(member.avg_closing) || 0,
-    effectiveness: parseInt(member.avg_effectiveness) || 0,
-    descriptions: {
-      overall: member.ratings_overall_summary || '',
-      engagement: member.ratings_engagement_summary || '',
-      objection: member.ratings_objection_summary || '',
-      information: member.ratings_information_summary || '',
-      program: member.ratings_program_summary || '',
-      closing: member.ratings_closing_summary || '',
-      effectiveness: member.ratings_effectiveness_summary || ''
-    }
-  }));
+  const ratingsData = data.teamMembers.map(member => {
+    console.log('Processing member for ratings:', member);
+    return {
+      user_id: member.user_id,
+      user_name: member.user_name,
+      user_picture_url: member.user_picture_url,
+      overall: parseInt(member.avg_overall || '0'),
+      engagement: parseInt(member.avg_engagement || '0'),
+      objection: parseInt(member.avg_objection || '0'),
+      information: parseInt(member.avg_information || '0'),
+      program: parseInt(member.avg_program || '0'),
+      closing: parseInt(member.avg_closing || '0'),
+      effectiveness: parseInt(member.avg_effectiveness || '0'),
+      descriptions: {
+        overall: member.overall_summary || member.ratings_overall_summary || '',
+        engagement: member.engagement_summary || member.ratings_engagement_summary || '',
+        objection: member.objection_summary || member.ratings_objection_summary || '',
+        information: member.information_summary || member.ratings_information_summary || '',
+        program: member.program_summary || member.ratings_program_summary || '',
+        closing: member.closing_summary || member.ratings_closing_summary || '',
+        effectiveness: member.effectiveness_summary || member.ratings_effectiveness_summary || ''
+      }
+    };
+  });
+  console.log('Processed ratingsData:', ratingsData);
 
   // Process Call Logs
-  const callLogsData = data.recentCalls.map(log => ({
+  const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls.map(log => ({
     ...log,
-    overall_performance: parseInt(log.overall_performance) || 0,
-    engagement_score: parseInt(log.engagement_score) || 0,
-    objection_handling_score: parseInt(log.objection_handling_score) || 0,
-    information_gathering_score: parseInt(log.information_gathering_score) || 0,
-    program_explanation_score: parseInt(log.program_explanation_score) || 0,
-    closing_score: parseInt(log.closing_score) || 0,
-    effectiveness_score: parseInt(log.effectiveness_score) || 0
-  }));
+    overall_performance: parseInt(log.overall_performance || '0'),
+    engagement_score: parseInt(log.engagement_score || '0'),
+    objection_handling_score: parseInt(log.objection_handling_score || '0'),
+    information_gathering_score: parseInt(log.information_gathering_score || '0'),
+    program_explanation_score: parseInt(log.program_explanation_score || '0'),
+    closing_score: parseInt(log.closing_score || '0'),
+    effectiveness_score: parseInt(log.effectiveness_score || '0')
+  })) : [];
+  console.log('Processed callLogsData:', callLogsData);
 
   // Apply filters and sorting
   const filteredActivityData = sortData(
@@ -442,12 +451,6 @@ const processTeamData = () => {
     callLogsSort.type,
     callLogsSort.direction
   );
-
-  console.log('Processed data:', {
-    filteredActivityData,
-    filteredRatingsData,
-    filteredCallLogsData
-  });
 
   return {
     filteredActivityData,
