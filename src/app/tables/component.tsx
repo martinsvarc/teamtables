@@ -300,6 +300,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioSrc, caller }) => {
     </div>
   );
 };
+
 const Component: React.FC<ComponentProps> = ({ initialData }) => {
   const searchParams = useSearchParams();
   const memberId = searchParams.get('memberId');
@@ -309,6 +310,9 @@ const Component: React.FC<ComponentProps> = ({ initialData }) => {
 
   // State declarations
 const [data, setData] = useState<DatabaseData | null>(initialData || null);
+const [isLoading, setIsLoading] = useState(!initialData);
+const [error, setError] = useState<string | null>(null);
+
   console.log('2. Data State:', {
     hasData: !!data,
     teamMembersCount: data?.teamMembers?.length,
