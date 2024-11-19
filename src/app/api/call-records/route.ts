@@ -111,12 +111,16 @@ export async function GET(request: Request) {
             WHERE s.user_id = d.user_id
           ), 0) as longest_streak,
           -- Calculate consistency (trainings this month / days in current month * 100)
-         ROUND(
-  (COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
-    DATE(call_date) >= DATE_TRUNC('month', CURRENT_DATE) AND 
-    DATE(call_date) <= CURRENT_DATE
-  )::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
-) as consistency_this_month
+        ROUND(
+            (COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
+              DATE(call_date) >= DATE_TRUNC('month', CURRENT_DATE) AND 
+              DATE(call_date) <= CURRENT_DATE
+            )::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
+          ) as consistency_this_month
+        FROM daily_stats d
+      )
+      SELECT * FROM final_stats;
+    `;
 
     // Get recent calls
     const { rows: recentCalls } = await sql`
