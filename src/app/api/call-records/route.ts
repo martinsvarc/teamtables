@@ -136,6 +136,7 @@ const { rows: teamStats } = await sql`
         ) as consistency_this_month
       FROM daily_stats d;
     `;
+    
       SELECT * FROM final_stats;
     `;
 
