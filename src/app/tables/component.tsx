@@ -461,16 +461,31 @@ const processTeamData = () => {
   }));
 
   // Process Call Logs
-const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls.map(log => ({
-    ...log,
-    overall_performance: Number(log.overall_performance) || 0,
-    engagement_score: Number(log.engagement_score) || 0,
-    objection_handling_score: Number(log.objection_handling_score) || 0,
-    information_gathering_score: Number(log.information_gathering_score) || 0,
-    program_explanation_score: Number(log.program_explanation_score) || 0,
-    closing_score: Number(log.closing_score) || 0,
-    effectiveness_score: Number(log.effectiveness_score) || 0
-  })) : [];
+const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
+    .filter(log => {
+      if (!date?.from) return true; // If no date selected, show all
+      
+      const callDate = new Date(log.call_date);
+      const fromDate = new Date(date.from);
+      const toDate = date.to ? new Date(date.to) : new Date();
+      
+      // Set times to midnight for accurate date comparison
+      callDate.setHours(0, 0, 0, 0);
+      fromDate.setHours(0, 0, 0, 0);
+      toDate.setHours(23, 59, 59, 999);
+
+      return callDate >= fromDate && callDate <= toDate;
+    })
+    .map(log => ({
+      ...log,
+      overall_performance: Number(log.overall_performance) || 0,
+      engagement_score: Number(log.engagement_score) || 0,
+      objection_handling_score: Number(log.objection_handling_score) || 0,
+      information_gathering_score: Number(log.information_gathering_score) || 0,
+      program_explanation_score: Number(log.program_explanation_score) || 0,
+      closing_score: Number(log.closing_score) || 0,
+      effectiveness_score: Number(log.effectiveness_score) || 0
+    })) : [];
 
   // Apply filters and sorting
  const filteredActivityData = sortData(
