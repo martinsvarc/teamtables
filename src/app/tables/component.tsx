@@ -31,6 +31,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Slider } from "@/components/ui/slider"
 import { Montserrat } from 'next/font/google'
 
+const API_BASE_URL = 'https://teamtables-havu.vercel.app';
+
 const montserratFont = Montserrat({ subsets: ['latin'] })
 
 type SortDirection = 'asc' | 'desc';
@@ -306,12 +308,19 @@ const Component: React.FC<ComponentProps> = ({ initialData }) => {
   const memberId = searchParams.get('memberId');
   const teamId = searchParams.get('teamId');
 
-  console.log('1. Initial Data received:', initialData);
+  console.log('Starting component with params:', { memberId, teamId });
 
   // State declarations
-const [data, setData] = useState<DatabaseData | null>(initialData || null);
-const [isLoading, setIsLoading] = useState(!initialData);
-const [error, setError] = useState<string | null>(null);
+const [data, setData] = useState<DatabaseData | null>(() => {
+    const defaultData = {
+      currentUser: null,
+      teamMembers: [],
+      recentCalls: []
+    };
+    return initialData || defaultData;
+  });
+  const [isLoading, setIsLoading] = useState(!initialData);
+  const [error, setError] = useState<string | null>(null);
 
   console.log('2. Data State:', {
     hasData: !!data,
@@ -346,36 +355,52 @@ const [error, setError] = useState<string | null>(null);
   });
 
   // Data fetching
-  useEffect(() => {
-    if ((!initialData && memberId && teamId) || searchParams.get('refresh')) {
+useEffect(() => {
+    if (memberId && teamId) {
+      console.log('Initiating fetch with:', { memberId, teamId });
       fetchData();
+    } else {
+      console.log('Missing required parameters:', { memberId, teamId });
     }
-  }, [memberId, teamId, initialData]);
+  }, [memberId, teamId]);
 
-const fetchData = async () => {
-  try {
-    setIsLoading(true);
-    console.log('3. Fetching with params:', { memberId, teamId });
-    const url = `/api/call-records?memberId=${memberId}&teamId=${teamId}`;
-    console.log('URL:', url);
-    const response = await fetch(url);
-    const newData = await response.json();
-    console.log('4. Fetch Response:', {
-      status: response.status,
-      hasData: !!newData,
-      teamMembersCount: newData?.teamMembers?.length,
-      callsCount: newData?.recentCalls?.length,
-      rawData: newData
-    });
-    setData(newData);
-    setError(null);
-  } catch (err) {
-    console.error('Fetch Error:', err);
-    setError(err instanceof Error ? err.message : 'An error occurred');
-  } finally {
-    setIsLoading(false);
-  }
-};
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      console.log('3. Fetching with params:', { memberId, teamId });
+      
+      const url = `${API_BASE_URL}/api/call-records?memberId=${memberId}&teamId=${teamId}`;
+      console.log('Fetching from URL:', url);
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const newData = await response.json();
+      console.log('Raw API Response:', newData);
+      
+      const processedData = {
+        currentUser: newData.currentUser || null,
+        teamMembers: Array.isArray(newData.teamMembers) ? newData.teamMembers : [],
+        recentCalls: Array.isArray(newData.recentCalls) ? newData.recentCalls : []
+      };
+      
+      console.log('4. Processed API Response:', {
+        hasCurrentUser: !!processedData.currentUser,
+        teamMembersCount: processedData.teamMembers.length,
+        callsCount: processedData.recentCalls.length
+      });
+      
+      setData(processedData);
+      setError(null);
+    } catch (err) {
+      console.error('Fetch Error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Handler functions
   const handleQuickSelection = (days: number) => {
