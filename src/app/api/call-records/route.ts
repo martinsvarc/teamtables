@@ -17,20 +17,43 @@ export async function GET(request: Request) {
     const memberId = searchParams.get('memberId');
     const teamId = searchParams.get('teamId');
 
-    console.log('Request params:', { memberId, teamId });
+    console.log('Received request with params:', { memberId, teamId });
 
-    // Changed: Check if team exists instead of user verification
-    const { rows: teamExists } = await sql`
-      SELECT EXISTS (
-        SELECT 1 FROM call_records 
-        WHERE team_id = ${teamId}
-        LIMIT 1
-      );
+    // Basic validation
+    if (!memberId || !teamId) {
+      console.log('Missing required parameters');
+      return NextResponse.json({
+        error: 'Missing required parameters',
+        teamMembers: [],
+        currentUser: null,
+        recentCalls: []
+      });
+    }
+
+    // Check total records in database
+    const { rows: totalRecords } = await sql`
+      SELECT COUNT(*) FROM call_records;
     `;
+    console.log('Total records in database:', totalRecords[0].count);
 
-    // If team doesn't exist, return empty data
-    if (!teamExists[0].exists) {
-      console.log('Team not found');
+    // Check records for specific team
+    const { rows: teamRecords } = await sql`
+      SELECT COUNT(*) FROM call_records 
+      WHERE team_id = ${teamId};
+    `;
+    console.log('Records for team:', teamRecords[0].count);
+
+    // Check records for specific member
+    const { rows: memberRecords } = await sql`
+      SELECT COUNT(*) FROM call_records 
+      WHERE team_id = ${teamId} 
+      AND user_id = ${memberId};
+    `;
+    console.log('Records for member:', memberRecords[0].count);
+
+    // If no records exist for this team, return early
+    if (parseInt(teamRecords[0].count) === 0) {
+      console.log('No records found for team');
       return NextResponse.json({
         teamMembers: [],
         currentUser: null,
@@ -38,7 +61,7 @@ export async function GET(request: Request) {
       });
     }
 
-    // Rest of your code remains the same
+    // Get team statistics
     const { rows: teamStats } = await sql`
       WITH daily_stats AS (
         SELECT 
@@ -105,7 +128,9 @@ export async function GET(request: Request) {
       FROM daily_stats d;
     `;
 
-    // Get recent calls for the team
+    console.log('Team stats found:', teamStats.length);
+
+    // Get recent calls
     const { rows: recentCalls } = await sql`
       SELECT 
         id,
@@ -136,31 +161,54 @@ export async function GET(request: Request) {
       LIMIT 50;
     `;
 
-    console.log('Found team members:', teamStats.length);
-    console.log('Found recent calls:', recentCalls.length);
+    console.log('Recent calls found:', recentCalls.length);
 
-    return NextResponse.json({
+    // Find current user
+    const currentUser = teamStats.find(member => member.user_id === memberId);
+    console.log('Current user found:', currentUser ? 'yes' : 'no');
+
+    const response = {
       teamMembers: teamStats || [],
-      currentUser: teamStats?.find(member => member.user_id === memberId) || null,
+      currentUser: currentUser || null,
       recentCalls: recentCalls || []
+    };
+
+    console.log('Response summary:', {
+      teamMembersCount: response.teamMembers.length,
+      hasCurrentUser: !!response.currentUser,
+      recentCallsCount: response.recentCalls.length
     });
+
+    return NextResponse.json(response);
 
   } catch (error: any) {
     console.error('API Route Error:', error);
+    // Log detailed error information
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      detail: error.detail
+    });
+
     return NextResponse.json({
+      error: 'Failed to fetch data',
+      details: error?.message || 'Unknown error',
       teamMembers: [],
       currentUser: null,
       recentCalls: []
-    });
+    }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
     const data = await request.json();
+    console.log('Received POST data:', data);
 
     // Validate required fields
     if (!data.user_id || !data.team_id) {
+      console.log('Missing required fields');
       return NextResponse.json({
         error: 'Missing required fields: user_id and team_id are required'
       }, { 
@@ -234,6 +282,8 @@ export async function POST(request: Request) {
         ${data.team_id}
       ) RETURNING *;
     `;
+
+    console.log('Record created successfully:', rows[0].id);
 
     return NextResponse.json({
       message: 'Record created successfully',
