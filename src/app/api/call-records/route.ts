@@ -110,13 +110,10 @@ export async function GET(request: Request) {
             FROM streaks s
             WHERE s.user_id = d.user_id
           ), 0) as longest_streak,
-          -- Updated consistency calculation
-         ROUND(
-  (COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
-    EXTRACT(MONTH FROM call_date) = EXTRACT(MONTH FROM CURRENT_DATE) AND
-    EXTRACT(YEAR FROM call_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-  )::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
-) as consistency_this_month
+          -- Calculate consistency (trainings this month / days in current month * 100)
+          ROUND(
+            (this_month::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
+          ) as consistency_this_month
         FROM daily_stats d
       )
       SELECT * FROM final_stats;
@@ -217,8 +214,7 @@ export async function POST(request: Request) {
         ratings_program_summary,
         ratings_closing_summary,
         ratings_effectiveness_summary,
-        team_id,
-        call_date
+        team_id
       ) VALUES (
         ${data.user_id},
         ${data.user_name || ''},
@@ -247,8 +243,7 @@ export async function POST(request: Request) {
         ${data.ratings_program_summary || ''},
         ${data.ratings_closing_summary || ''},
         ${data.ratings_effectiveness_summary || ''},
-        ${data.team_id},
-        CURRENT_TIMESTAMP
+        ${data.team_id}
       ) RETURNING *;
     `;
 
