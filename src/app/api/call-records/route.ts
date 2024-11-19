@@ -1,16 +1,3 @@
-import { sql } from "@vercel/postgres";
-import { NextResponse } from "next/server";
-
-export async function OPTIONS() {
-  return NextResponse.json({}, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
-}
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -28,26 +15,18 @@ export async function GET(request: Request) {
       });
     }
 
-    // Main query with proper date handling
+    // Main query with simpler date handling
     const { rows: teamStats } = await sql`
-      WITH parsed_dates AS (
-        SELECT 
-          id,
-          user_id,
-          CAST(SUBSTRING(call_date, 1, 24) AS timestamp) as parsed_date
-        FROM call_records
-        WHERE team_id = ${teamId}
-      ),
-      user_metrics AS (
+      WITH user_metrics AS (
         SELECT 
           cr.user_id,
           cr.user_name,
           cr.user_picture_url,
-          -- Count calculations using parsed dates
+          -- Count calculations
           COUNT(*) as total_trainings,
-          COUNT(*) FILTER (WHERE DATE(pd.parsed_date) = CURRENT_DATE) as trainings_today,
-          COUNT(*) FILTER (WHERE DATE(pd.parsed_date) >= DATE_TRUNC('week', CURRENT_DATE)) as this_week,
-          COUNT(*) FILTER (WHERE DATE(pd.parsed_date) >= DATE_TRUNC('month', CURRENT_DATE)) as this_month,
+          COUNT(*) FILTER (WHERE DATE(call_date::timestamp) = CURRENT_DATE) as trainings_today,
+          COUNT(*) FILTER (WHERE DATE(call_date::timestamp) >= DATE_TRUNC('week', CURRENT_DATE)) as this_week,
+          COUNT(*) FILTER (WHERE DATE(call_date::timestamp) >= DATE_TRUNC('month', CURRENT_DATE)) as this_month,
           -- Score averages
           ROUND(AVG(CAST(NULLIF(cr.overall_performance, '') AS numeric))) as avg_overall,
           ROUND(AVG(CAST(NULLIF(cr.engagement_score, '') AS numeric))) as avg_engagement,
@@ -65,16 +44,16 @@ export async function GET(request: Request) {
           MAX(cr.ratings_closing_summary) as closing_summary,
           MAX(cr.ratings_effectiveness_summary) as effectiveness_summary
         FROM call_records cr
-        JOIN parsed_dates pd ON cr.id = pd.id
         WHERE cr.team_id = ${teamId}
         GROUP BY cr.user_id, cr.user_name, cr.user_picture_url
       ),
       streak_data AS (
         SELECT 
           user_id,
-          DATE(parsed_date) as training_date,
-          DATE(parsed_date) - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY DATE(parsed_date)))::integer AS streak_group
-        FROM parsed_dates
+          DATE(call_date::timestamp) as training_date,
+          DATE(call_date::timestamp) - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY DATE(call_date::timestamp)))::integer AS streak_group
+        FROM call_records
+        WHERE team_id = ${teamId}
       ),
       streak_lengths AS (
         SELECT 
@@ -106,15 +85,8 @@ export async function GET(request: Request) {
       LEFT JOIN final_streaks f ON m.user_id = f.user_id;
     `;
 
-    // Get recent calls with proper date ordering
+    // Get recent calls with simplified date handling
     const { rows: recentCalls } = await sql`
-      WITH parsed_calls AS (
-        SELECT 
-          *,
-          CAST(SUBSTRING(call_date, 1, 24) AS timestamp) as parsed_date
-        FROM call_records
-        WHERE team_id = ${teamId}
-      )
       SELECT 
         id,
         user_id,
@@ -138,8 +110,9 @@ export async function GET(request: Request) {
         program_explanation_text,
         closing_text,
         effectiveness_text
-      FROM parsed_calls
-      ORDER BY parsed_date DESC
+      FROM call_records
+      WHERE team_id = ${teamId}
+      ORDER BY call_date::timestamp DESC
       LIMIT 50;
     `;
 
@@ -165,124 +138,5 @@ export async function GET(request: Request) {
       currentUser: null,
       recentCalls: []
     }, { status: 500 });
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    const data = await request.json();
-
-    if (!data.user_id || !data.team_id) {
-      return NextResponse.json({
-        error: 'Missing required fields: user_id and team_id are required'
-      }, { 
-        status: 400,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        }
-      });
-    }
-
-    // Generate current date in the required format
-    const now = new Date();
-    const formattedDate = now.toLocaleString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      timeZone: 'GMT',
-      hour12: false
-    }) + ' GMT+0100 (GMT+01:00)';
-
-    const { rows } = await sql`
-      INSERT INTO call_records (
-        user_id,
-        user_name,
-        user_picture_url,
-        assistant_name,
-        assistant_picture_url,
-        recording_url,
-        call_date,
-        overall_performance,
-        engagement_score,
-        objection_handling_score,
-        information_gathering_score,
-        program_explanation_score,
-        closing_score,
-        effectiveness_score,
-        overall_performance_text,
-        engagement_text,
-        objection_handling_text,
-        information_gathering_text,
-        program_explanation_text,
-        closing_text,
-        effectiveness_text,
-        ratings_overall_summary,
-        ratings_engagement_summary,
-        ratings_objection_summary,
-        ratings_information_summary,
-        ratings_program_summary,
-        ratings_closing_summary,
-        ratings_effectiveness_summary,
-        team_id
-      ) VALUES (
-        ${data.user_id},
-        ${data.user_name || ''},
-        ${data.user_picture_url || ''},
-        ${data.assistant_name || ''},
-        ${data.assistant_picture_url || ''},
-        ${data.recording_url || ''},
-        ${formattedDate},
-        ${data.overall_performance || 0},
-        ${data.engagement_score || 0},
-        ${data.objection_handling_score || 0},
-        ${data.information_gathering_score || 0},
-        ${data.program_explanation_score || 0},
-        ${data.closing_score || 0},
-        ${data.effectiveness_score || 0},
-        ${data.overall_performance_text || ''},
-        ${data.engagement_text || ''},
-        ${data.objection_handling_text || ''},
-        ${data.information_gathering_text || ''},
-        ${data.program_explanation_text || ''},
-        ${data.closing_text || ''},
-        ${data.effectiveness_text || ''},
-        ${data.ratings_overall_summary || ''},
-        ${data.ratings_engagement_summary || ''},
-        ${data.ratings_objection_summary || ''},
-        ${data.ratings_information_summary || ''},
-        ${data.ratings_program_summary || ''},
-        ${data.ratings_closing_summary || ''},
-        ${data.ratings_effectiveness_summary || ''},
-        ${data.team_id}
-      ) RETURNING *;
-    `;
-
-    return NextResponse.json({
-      message: 'Record created successfully',
-      record: rows[0]
-    }, { 
-      status: 201,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-      }
-    });
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('API Route Error:', errorMessage);
-    
-    return NextResponse.json({
-      error: 'Failed to create record',
-      details: errorMessage
-    }, { 
-      status: 500,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-      }
-    });
   }
 }
