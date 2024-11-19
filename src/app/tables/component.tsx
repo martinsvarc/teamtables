@@ -4,6 +4,7 @@ import * as React from "react"
 import { DateRange } from "react-day-picker"
 import { useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
+import Image from 'next/image';
 import { useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -573,9 +574,14 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
             <Card className={sectionStyle}>
               <div className={headerStyle}>
                 <div className="flex items-center gap-2 text-[#556bc7]">
-                  <BarChart2 className="h-5 w-5" />
-                  <h2 className="text-lg font-extrabold tracking-normal">Table Activity Team View</h2>
-                </div>
+  <Image 
+    src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/incresing_chart_jivjlw.png" 
+    alt="Activity Chart" 
+    width={20} 
+    height={20} 
+  />
+  <h2 className="text-lg font-extrabold tracking-normal">Table Activity Team View</h2>
+</div>
                 <div className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -670,9 +676,14 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
             <Card className={sectionStyle}>
               <div className={headerStyle}>
                 <div className="flex items-center gap-2 text-[#51c1a9]">
-                  <Star className="h-5 w-5" />
-                  <h2 className="text-lg font-extrabold">Ratings Team's View</h2>
-                </div>
+  <Image 
+    src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/star_icon_enqnvu.png" 
+    alt="Star Rating" 
+    width={20} 
+    height={20} 
+  />
+  <h2 className="text-lg font-extrabold">Ratings Team's View</h2>
+</div>
                 <div className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -816,9 +827,14 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
             <Card className={sectionStyle}>
               <div className={headerStyle}>
                 <div className="flex items-center gap-2 text-[#fbb350]">
-                  <PhoneCall className="h-5 w-5" />
-                  <h2 className="text-lg font-extrabold">Team Call Logs</h2>
-                </div>
+  <Image 
+    src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/Phone_icon_jhnzrh.png" 
+    alt="Phone" 
+    width={20} 
+    height={20} 
+  />
+  <h2 className="text-lg font-extrabold">Team Call Logs</h2>
+</div>
                 <div className="flex gap-2">
                   <Popover>
                     <PopoverTrigger asChild>
