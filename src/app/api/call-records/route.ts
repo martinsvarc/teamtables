@@ -29,7 +29,7 @@ export async function GET(request: Request) {
       });
     }
 
-const { rows: teamStats } = await sql`
+    const { rows: teamStats } = await sql`
       WITH daily_stats AS (
         SELECT 
           user_id,
@@ -134,10 +134,7 @@ const { rows: teamStats } = await sql`
         ROUND(
           (NULLIF(d.this_month, 0)::float / d.days_in_month) * 100
         ) as consistency_this_month
-      FROM daily_stats d;
-    `;
-    
-      SELECT * FROM final_stats;
+      FROM daily_stats d
     `;
 
     // Get recent calls (keeping this part unchanged as it works)
