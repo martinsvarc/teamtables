@@ -336,7 +336,7 @@ const Component: React.FC<ComponentProps> = ({ initialData }) => {
     }
   }, [memberId, teamId, initialData]);
 
- const fetchData = async () => {
+const fetchData = async () => {
   try {
     setIsLoading(true);
     console.log('2. Starting fetch with:', { memberId, teamId });
@@ -349,6 +349,11 @@ const Component: React.FC<ComponentProps> = ({ initialData }) => {
     setData(newData);
     setError(null);
   } catch (err) {
+    setError(err instanceof Error ? err.message : 'An error occurred');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Handler functions
   const handleQuickSelection = (days: number) => {
