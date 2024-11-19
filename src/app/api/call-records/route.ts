@@ -31,47 +31,47 @@ export async function GET(request: Request) {
 
     // Updated team statistics with fixed calculations
     const { rows: teamStats } = await sql`
-     WITH daily_stats AS (
-  SELECT 
-    user_id,
-    user_name,
-    user_picture_url,
-    -- Today's trainings (using simple date extraction)
-    COUNT(*) FILTER (WHERE TO_CHAR(call_date::timestamp, 'YYYY-MM-DD') = TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')) as trainings_today,
-    -- This week's trainings
-    COUNT(*) FILTER (WHERE 
-      call_date::timestamp >= DATE_TRUNC('week', CURRENT_DATE)::timestamp AND 
-      call_date::timestamp < (DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 days')::timestamp
-    ) as this_week,
-    -- This month's trainings
-    COUNT(*) FILTER (WHERE 
-      call_date::timestamp >= DATE_TRUNC('month', CURRENT_DATE)::timestamp AND 
-      call_date::timestamp < (DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month')::timestamp
-    ) as this_month,
-    COUNT(*) as total_trainings,
-    ROUND(AVG(overall_performance::numeric)) as avg_overall,
-    ROUND(AVG(engagement_score::numeric)) as avg_engagement,
-    ROUND(AVG(objection_handling_score::numeric)) as avg_objection,
-    ROUND(AVG(information_gathering_score::numeric)) as avg_information,
-    ROUND(AVG(program_explanation_score::numeric)) as avg_program,
-    ROUND(AVG(closing_score::numeric)) as avg_closing,
-    ROUND(AVG(effectiveness_score::numeric)) as avg_effectiveness,
-    MAX(ratings_overall_summary) as overall_summary,
-    MAX(ratings_engagement_summary) as engagement_summary,
-    MAX(ratings_objection_summary) as objection_summary,
-    MAX(ratings_information_summary) as information_summary,
-    MAX(ratings_program_summary) as program_summary,
-    MAX(ratings_closing_summary) as closing_summary,
-    MAX(ratings_effectiveness_summary) as effectiveness_summary
-  FROM call_records
-  WHERE team_id = ${teamId}
-  GROUP BY user_id, user_name, user_picture_url
-)
+      WITH daily_stats AS (
+        SELECT 
+          user_id,
+          user_name,
+          user_picture_url,
+          -- Today's trainings
+          COUNT(*) FILTER (WHERE DATE(call_date) = CURRENT_DATE) as trainings_today,
+          -- This week's trainings
+          COUNT(*) FILTER (WHERE 
+            DATE(call_date) >= DATE_TRUNC('week', CURRENT_DATE) AND 
+            DATE(call_date) <= CURRENT_DATE
+          ) as this_week,
+          -- This month's trainings
+          COUNT(*) FILTER (WHERE 
+            DATE(call_date) >= DATE_TRUNC('month', CURRENT_DATE) AND 
+            DATE(call_date) <= CURRENT_DATE
+          ) as this_month,
+          COUNT(*) as total_trainings,
+          ROUND(AVG(overall_performance::numeric)) as avg_overall,
+          ROUND(AVG(engagement_score::numeric)) as avg_engagement,
+          ROUND(AVG(objection_handling_score::numeric)) as avg_objection,
+          ROUND(AVG(information_gathering_score::numeric)) as avg_information,
+          ROUND(AVG(program_explanation_score::numeric)) as avg_program,
+          ROUND(AVG(closing_score::numeric)) as avg_closing,
+          ROUND(AVG(effectiveness_score::numeric)) as avg_effectiveness,
+          MAX(ratings_overall_summary) as overall_summary,
+          MAX(ratings_engagement_summary) as engagement_summary,
+          MAX(ratings_objection_summary) as objection_summary,
+          MAX(ratings_information_summary) as information_summary,
+          MAX(ratings_program_summary) as program_summary,
+          MAX(ratings_closing_summary) as closing_summary,
+          MAX(ratings_effectiveness_summary) as effectiveness_summary
+        FROM call_records
+        WHERE team_id = ${teamId}
+        GROUP BY user_id, user_name, user_picture_url
+      ),
       -- Improved streak calculation
       daily_activity AS (
         SELECT DISTINCT
           user_id,
-          DATE(call_date AT TIME ZONE 'UTC') as activity_date
+          DATE(call_date) as activity_date
         FROM call_records
         WHERE team_id = ${teamId}
         ORDER BY 1, 2
@@ -112,14 +112,14 @@ export async function GET(request: Request) {
           ), 0) as longest_streak,
           -- Calculate consistency (trainings this month / days in current month * 100)
           ROUND(
-            (this_month::numeric / EXTRACT(DAY FROM DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month - 1 day')) * 100
+            (this_month::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
           ) as consistency_this_month
         FROM daily_stats d
       )
       SELECT * FROM final_stats;
     `;
 
-    // Get recent calls (keeping this part unchanged as it works)
+    // Get recent calls
     const { rows: recentCalls } = await sql`
       SELECT 
         id,
@@ -193,7 +193,6 @@ export async function POST(request: Request) {
         assistant_name,
         assistant_picture_url,
         recording_url,
-        call_date,
         overall_performance,
         engagement_score,
         objection_handling_score,
@@ -223,17 +222,6 @@ export async function POST(request: Request) {
         ${data.assistant_name || ''},
         ${data.assistant_picture_url || ''},
         ${data.recording_url || ''},
-${new Date().toLocaleString('en-US', {
-  weekday: 'short',
-  month: 'short',
-  day: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-  timeZone: 'GMT',
-  hour12: false
-}) + ' GMT+0100 (GMT+01:00)'},       
         ${data.overall_performance || 0},
         ${data.engagement_score || 0},
         ${data.objection_handling_score || 0},
