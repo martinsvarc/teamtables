@@ -31,51 +31,65 @@ export async function GET(request: Request) {
 
     // Updated team statistics with corrected time-based calculations
 const { rows: teamStats } = await sql`
-WITH daily_stats AS (
+WITH parsed_dates AS (
   SELECT 
+    id,
     user_id,
-    user_name,
-    user_picture_url,
-    -- Today's trainings (using UTC date to match your system)
-    COUNT(*) FILTER (WHERE DATE(call_date) = CURRENT_DATE) as trainings_today,
-    -- This week's trainings (from Monday to today)
-    COUNT(*) FILTER (WHERE 
-      call_date >= DATE_TRUNC('week', CURRENT_DATE) AND 
-      call_date <= CURRENT_TIMESTAMP
-    ) as this_week,
-    -- This month's trainings (from 1st to today)
-    COUNT(*) FILTER (WHERE 
-      call_date >= DATE_TRUNC('month', CURRENT_DATE) AND 
-      call_date <= CURRENT_TIMESTAMP
-    ) as this_month,
-    COUNT(*) as total_trainings,
-    ROUND(AVG(overall_performance::numeric)) as avg_overall,
-    ROUND(AVG(engagement_score::numeric)) as avg_engagement,
-    ROUND(AVG(objection_handling_score::numeric)) as avg_objection,
-    ROUND(AVG(information_gathering_score::numeric)) as avg_information,
-    ROUND(AVG(program_explanation_score::numeric)) as avg_program,
-    ROUND(AVG(closing_score::numeric)) as avg_closing,
-    ROUND(AVG(effectiveness_score::numeric)) as avg_effectiveness,
-    MAX(ratings_overall_summary) as overall_summary,
-    MAX(ratings_engagement_summary) as engagement_summary,
-    MAX(ratings_objection_summary) as objection_summary,
-    MAX(ratings_information_summary) as information_summary,
-    MAX(ratings_program_summary) as program_summary,
-    MAX(ratings_closing_summary) as closing_summary,
-    MAX(ratings_effectiveness_summary) as effectiveness_summary
+    team_id,
+    -- Convert string date to proper timestamp
+    CAST(CAST(call_date AS timestamp) AT TIME ZONE 'UTC' AS date) as call_date_parsed
   FROM call_records
-  WHERE team_id = ${teamId}
-  GROUP BY user_id, user_name, user_picture_url
 ),
--- Calculate streaks
+daily_stats AS (
+  SELECT 
+    cr.user_id,
+    cr.user_name,
+    cr.user_picture_url,
+    -- Today's trainings
+    COUNT(DISTINCT CASE 
+      WHEN pd.call_date_parsed = CURRENT_DATE 
+      THEN cr.id 
+    END) as trainings_today,
+    -- This week's trainings
+    COUNT(DISTINCT CASE 
+      WHEN pd.call_date_parsed >= date_trunc('week', CURRENT_DATE)
+      AND pd.call_date_parsed <= CURRENT_DATE 
+      THEN cr.id 
+    END) as this_week,
+    -- This month's trainings
+    COUNT(DISTINCT CASE 
+      WHEN pd.call_date_parsed >= date_trunc('month', CURRENT_DATE)
+      AND pd.call_date_parsed <= CURRENT_DATE 
+      THEN cr.id 
+    END) as this_month,
+    COUNT(DISTINCT cr.id) as total_trainings,
+    ROUND(AVG(NULLIF(cr.overall_performance, '')::numeric)) as avg_overall,
+    ROUND(AVG(NULLIF(cr.engagement_score, '')::numeric)) as avg_engagement,
+    ROUND(AVG(NULLIF(cr.objection_handling_score, '')::numeric)) as avg_objection,
+    ROUND(AVG(NULLIF(cr.information_gathering_score, '')::numeric)) as avg_information,
+    ROUND(AVG(NULLIF(cr.program_explanation_score, '')::numeric)) as avg_program,
+    ROUND(AVG(NULLIF(cr.closing_score, '')::numeric)) as avg_closing,
+    ROUND(AVG(NULLIF(cr.effectiveness_score, '')::numeric)) as avg_effectiveness,
+    MAX(cr.ratings_overall_summary) as overall_summary,
+    MAX(cr.ratings_engagement_summary) as engagement_summary,
+    MAX(cr.ratings_objection_summary) as objection_summary,
+    MAX(cr.ratings_information_summary) as information_summary,
+    MAX(cr.ratings_program_summary) as program_summary,
+    MAX(cr.ratings_closing_summary) as closing_summary,
+    MAX(cr.ratings_effectiveness_summary) as effectiveness_summary
+  FROM call_records cr
+  JOIN parsed_dates pd ON cr.id = pd.id
+  WHERE cr.team_id = ${teamId}
+  GROUP BY cr.user_id, cr.user_name, cr.user_picture_url
+),
 consecutive_days AS (
   SELECT 
     user_id,
-    call_date::date as training_date,
-    call_date::date - (DENSE_RANK() OVER (PARTITION BY user_id ORDER BY call_date::date))::integer * INTERVAL '1 day' as grp
+    call_date_parsed as training_date,
+    call_date_parsed - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY call_date_parsed))::integer * INTERVAL '1 day' as grp
   FROM (
-    SELECT DISTINCT user_id, call_date::date
-    FROM call_records
+    SELECT DISTINCT user_id, call_date_parsed
+    FROM parsed_dates
     WHERE team_id = ${teamId}
   ) t
 ),
@@ -106,9 +120,9 @@ SELECT
   d.*,
   COALESCE(cs.current_streak, 0) as current_streak,
   COALESCE(ls.longest_streak, 0) as longest_streak,
-  -- Calculate consistency based on days passed in current month
   ROUND(
-    (d.this_month::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
+    NULLIF(d.this_month::numeric, 0) / 
+    EXTRACT(DAY FROM CURRENT_DATE) * 100
   ) as consistency_this_month
 FROM daily_stats d
 LEFT JOIN current_streaks cs ON d.user_id = cs.user_id
