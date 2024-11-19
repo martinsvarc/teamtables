@@ -308,9 +308,13 @@ const Component: React.FC<ComponentProps> = ({ initialData }) => {
   console.log('1. Initial Data received:', initialData);
 
   // State declarations
-  const [data, setData] = useState<DatabaseData | null>(initialData || null);
-  const [isLoading, setIsLoading] = useState(!initialData);
-  const [error, setError] = useState<string | null>(null);
+const [data, setData] = useState<DatabaseData | null>(initialData || null);
+  console.log('2. Data State:', {
+    hasData: !!data,
+    teamMembersCount: data?.teamMembers?.length,
+    callsCount: data?.recentCalls?.length,
+    rawData: data
+  });
 
   // UI States
   const [showMoreActivity, setShowMoreActivity] = useState(false);
@@ -347,16 +351,22 @@ const Component: React.FC<ComponentProps> = ({ initialData }) => {
 const fetchData = async () => {
   try {
     setIsLoading(true);
-    console.log('2. Starting fetch with:', { memberId, teamId });
-    const response = await fetch(
-      `/api/call-records?memberId=${memberId}&teamId=${teamId}`
-    );
-    if (!response.ok) throw new Error('Failed to fetch data');
+    console.log('3. Fetching with params:', { memberId, teamId });
+    const url = `/api/call-records?memberId=${memberId}&teamId=${teamId}`;
+    console.log('URL:', url);
+    const response = await fetch(url);
     const newData = await response.json();
-    console.log('3. Fetch response:', newData);
+    console.log('4. Fetch Response:', {
+      status: response.status,
+      hasData: !!newData,
+      teamMembersCount: newData?.teamMembers?.length,
+      callsCount: newData?.recentCalls?.length,
+      rawData: newData
+    });
     setData(newData);
     setError(null);
   } catch (err) {
+    console.error('Fetch Error:', err);
     setError(err instanceof Error ? err.message : 'An error occurred');
   } finally {
     setIsLoading(false);
@@ -372,7 +382,12 @@ const fetchData = async () => {
   };
 
 const processTeamData = () => {
-  console.log('Starting processTeamData with:', data);
+  console.log('5. Before Processing:', {
+    hasData: !!data,
+    teamMembersCount: data?.teamMembers?.length,
+    callsCount: data?.recentCalls?.length,
+    data: data
+  });
 
   if (!data || !Array.isArray(data.teamMembers)) {
     console.log('No valid data to process');
