@@ -17,9 +17,10 @@ export async function GET(request: Request) {
     const memberId = searchParams.get('memberId');
     const teamId = searchParams.get('teamId');
 
-    console.log('Starting request with params:', { memberId, teamId });
+    console.log('Received request with params:', { memberId, teamId });
 
     if (!memberId || !teamId) {
+      console.log('Missing required parameters');
       return NextResponse.json({
         error: 'Missing required parameters',
         teamMembers: [],
@@ -28,77 +29,115 @@ export async function GET(request: Request) {
       });
     }
 
-    // Main query with simpler date handling
-    const { rows: teamStats } = await sql`
-      WITH user_metrics AS (
-        SELECT 
-          cr.user_id,
-          cr.user_name,
-          cr.user_picture_url,
-          -- Count calculations
-          COUNT(*) as total_trainings,
-          COUNT(*) FILTER (WHERE DATE(call_date::timestamp) = CURRENT_DATE) as trainings_today,
-          COUNT(*) FILTER (WHERE DATE(call_date::timestamp) >= DATE_TRUNC('week', CURRENT_DATE)) as this_week,
-          COUNT(*) FILTER (WHERE DATE(call_date::timestamp) >= DATE_TRUNC('month', CURRENT_DATE)) as this_month,
-          -- Score averages
-          ROUND(AVG(CAST(NULLIF(cr.overall_performance, '') AS numeric))) as avg_overall,
-          ROUND(AVG(CAST(NULLIF(cr.engagement_score, '') AS numeric))) as avg_engagement,
-          ROUND(AVG(CAST(NULLIF(cr.objection_handling_score, '') AS numeric))) as avg_objection,
-          ROUND(AVG(CAST(NULLIF(cr.information_gathering_score, '') AS numeric))) as avg_information,
-          ROUND(AVG(CAST(NULLIF(cr.program_explanation_score, '') AS numeric))) as avg_program,
-          ROUND(AVG(CAST(NULLIF(cr.closing_score, '') AS numeric))) as avg_closing,
-          ROUND(AVG(CAST(NULLIF(cr.effectiveness_score, '') AS numeric))) as avg_effectiveness,
-          -- Summaries
-          MAX(cr.ratings_overall_summary) as overall_summary,
-          MAX(cr.ratings_engagement_summary) as engagement_summary,
-          MAX(cr.ratings_objection_summary) as objection_summary,
-          MAX(cr.ratings_information_summary) as information_summary,
-          MAX(cr.ratings_program_summary) as program_summary,
-          MAX(cr.ratings_closing_summary) as closing_summary,
-          MAX(cr.ratings_effectiveness_summary) as effectiveness_summary
-        FROM call_records cr
-        WHERE cr.team_id = ${teamId}
-        GROUP BY cr.user_id, cr.user_name, cr.user_picture_url
-      ),
-      streak_data AS (
+const { rows: teamStats } = await sql`
+      WITH daily_stats AS (
         SELECT 
           user_id,
-          DATE(call_date::timestamp) as training_date,
-          DATE(call_date::timestamp) - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY DATE(call_date::timestamp)))::integer AS streak_group
+          user_name,
+          user_picture_url,
+          -- Today's trainings
+          COUNT(DISTINCT CASE 
+            WHEN DATE(call_date) = CURRENT_DATE 
+            THEN call_date 
+            END
+          ) as trainings_today,
+          -- This week
+          COUNT(DISTINCT CASE 
+            WHEN call_date >= CURRENT_DATE - INTERVAL '7 days' 
+            THEN DATE(call_date) 
+            END
+          ) as this_week,
+          -- This month
+          COUNT(DISTINCT CASE 
+            WHEN DATE_TRUNC('month', call_date) = DATE_TRUNC('month', CURRENT_DATE) 
+            THEN DATE(call_date) 
+            END
+          ) as this_month,
+          COUNT(*) as total_trainings,
+          ROUND(AVG(overall_performance::numeric)) as avg_overall,
+          ROUND(AVG(engagement_score::numeric)) as avg_engagement,
+          ROUND(AVG(objection_handling_score::numeric)) as avg_objection,
+          ROUND(AVG(information_gathering_score::numeric)) as avg_information,
+          ROUND(AVG(program_explanation_score::numeric)) as avg_program,
+          ROUND(AVG(closing_score::numeric)) as avg_closing,
+          ROUND(AVG(effectiveness_score::numeric)) as avg_effectiveness,
+          MAX(ratings_overall_summary) as overall_summary,
+          MAX(ratings_engagement_summary) as engagement_summary,
+          MAX(ratings_objection_summary) as objection_summary,
+          MAX(ratings_information_summary) as information_summary,
+          MAX(ratings_program_summary) as program_summary,
+          MAX(ratings_closing_summary) as closing_summary,
+          MAX(ratings_effectiveness_summary) as effectiveness_summary,
+          -- Calculate days in current month for consistency
+          EXTRACT(days FROM DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month - 1 day') as days_in_month
         FROM call_records
         WHERE team_id = ${teamId}
+        GROUP BY user_id, user_name, user_picture_url
       ),
-      streak_lengths AS (
+      -- Calculate streaks
+      date_sequence AS (
         SELECT 
           user_id,
-          COUNT(*) as streak_length,
-          MIN(training_date) as streak_start,
-          MAX(training_date) as streak_end
-        FROM streak_data
-        GROUP BY user_id, streak_group
+          DATE(call_date) as training_date,
+          LAG(DATE(call_date)) OVER (PARTITION BY user_id ORDER BY DATE(call_date)) as prev_date
+        FROM (
+          SELECT DISTINCT user_id, call_date
+          FROM call_records
+          WHERE team_id = ${teamId}
+        ) as distinct_dates
       ),
-      final_streaks AS (
+      streak_breaks AS (
         SELECT
           user_id,
-          MAX(CASE WHEN streak_end = CURRENT_DATE THEN streak_length ELSE 0 END) as current_streak,
-          MAX(streak_length) as longest_streak
-        FROM streak_lengths
-        GROUP BY user_id
+          training_date,
+          CASE 
+            WHEN training_date - prev_date > INTERVAL '1 day' 
+            OR prev_date IS NULL 
+            THEN 1 
+            ELSE 0 
+          END as is_break
+        FROM date_sequence
+      ),
+      streaks AS (
+        SELECT
+          user_id,
+          training_date,
+          SUM(is_break) OVER (PARTITION BY user_id ORDER BY training_date) as streak_group
+        FROM streak_breaks
+      ),
+      streak_lengths AS (
+        SELECT
+          user_id,
+          streak_group,
+          COUNT(*) as streak_length,
+          MAX(training_date) as last_date
+        FROM streaks
+        GROUP BY user_id, streak_group
       )
       SELECT 
-        m.*,
-        COALESCE(f.current_streak, 0) as current_streak,
-        COALESCE(f.longest_streak, 0) as longest_streak,
-        CASE 
-          WHEN m.this_month > 0 
-          THEN ROUND((m.this_month::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100)
-          ELSE 0 
-        END as consistency_this_month
-      FROM user_metrics m
-      LEFT JOIN final_streaks f ON m.user_id = f.user_id;
+        d.*,
+        COALESCE(
+          (SELECT streak_length
+           FROM streak_lengths s
+           WHERE s.user_id = d.user_id
+           AND s.last_date = CURRENT_DATE
+           LIMIT 1
+          ), 0
+        ) as current_streak,
+        COALESCE(
+          (SELECT MAX(streak_length)
+           FROM streak_lengths s
+           WHERE s.user_id = d.user_id
+          ), 0
+        ) as longest_streak,
+        -- Calculate consistency percentage
+        ROUND(
+          (NULLIF(d.this_month, 0)::float / d.days_in_month) * 100
+        ) as consistency_this_month
+      FROM daily_stats d;
     `;
 
-    // Get recent calls with simplified date handling
+    // Get recent calls (keeping this part unchanged as it works)
     const { rows: recentCalls } = await sql`
       SELECT 
         id,
@@ -125,7 +164,7 @@ export async function GET(request: Request) {
         effectiveness_text
       FROM call_records
       WHERE team_id = ${teamId}
-      ORDER BY call_date::timestamp DESC
+      ORDER BY call_date DESC
       LIMIT 50;
     `;
 
@@ -137,16 +176,11 @@ export async function GET(request: Request) {
 
     return NextResponse.json(response);
 
-  } catch (error) {
-    console.error('API Error:', error instanceof Error ? {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    } : error);
-
+  } catch (error: any) {
+    console.error('API Route Error:', error);
     return NextResponse.json({
       error: 'Failed to fetch data',
-      details: error instanceof Error ? error.message : 'Unknown error',
+      details: error?.message || 'Unknown error',
       teamMembers: [],
       currentUser: null,
       recentCalls: []
@@ -168,20 +202,6 @@ export async function POST(request: Request) {
         }
       });
     }
-
-    // Generate current date in the required format
-    const now = new Date();
-    const formattedDate = now.toLocaleString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      timeZone: 'GMT',
-      hour12: false
-    }) + ' GMT+0100 (GMT+01:00)';
 
     const { rows } = await sql`
       INSERT INTO call_records (
@@ -221,7 +241,7 @@ export async function POST(request: Request) {
         ${data.assistant_name || ''},
         ${data.assistant_picture_url || ''},
         ${data.recording_url || ''},
-        ${formattedDate},
+        ${data.call_date || new Date().toISOString()},
         ${data.overall_performance || 0},
         ${data.engagement_score || 0},
         ${data.objection_handling_score || 0},
@@ -257,13 +277,11 @@ export async function POST(request: Request) {
       }
     });
 
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('API Route Error:', errorMessage);
-    
+  } catch (error: any) {
+    console.error('API Route Error:', error);
     return NextResponse.json({
       error: 'Failed to create record',
-      details: errorMessage
+      details: error?.message || 'Unknown error'
     }, { 
       status: 500,
       headers: {
