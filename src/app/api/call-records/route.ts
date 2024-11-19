@@ -110,12 +110,9 @@ export async function GET(request: Request) {
             FROM streaks s
             WHERE s.user_id = d.user_id
           ), 0) as longest_streak,
-          -- Calculate consistency (unique days with training / days passed in current month * 100)
+          -- Calculate consistency (trainings this month / days in current month * 100)
           ROUND(
-            (COUNT(DISTINCT DATE(call_date)) FILTER (WHERE 
-              DATE(call_date) >= DATE_TRUNC('month', CURRENT_DATE) AND 
-              DATE(call_date) <= CURRENT_DATE
-            )::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
+            (this_month::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100
           ) as consistency_this_month
         FROM daily_stats d
       )
