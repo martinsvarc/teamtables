@@ -422,21 +422,19 @@ const processTeamData = () => {
 
   // Process Activity Data
   const activityData = data.teamMembers.map(member => {
-    return {
-      user_id: member.user_id,
-      user_name: member.user_name,
-      user_picture_url: member.user_picture_url,
-      trainingsToday: Number(member.trainings_today) || 0,
-      thisWeek: Number(member.this_week) || 0,
-      thisMonth: Number(member.this_month) || 0,
-      total: Number(member.total_trainings) || 0,
-      currentStreak: Number(member.current_streak) || 0,
-      longestStreak: Number(member.longest_streak) || 0,
-      consistency: Math.round(
-        (Number(member.this_month) / (new Date().getDate())) * 100
-      ) || 0
-    };
-  });
+  return {
+    user_id: member.user_id,
+    user_name: member.user_name,
+    user_picture_url: member.user_picture_url,
+    trainingsToday: Number(member.trainings_today) || 0,
+    thisWeek: Number(member.this_week) || 0,
+    thisMonth: Number(member.this_month) || 0,
+    total: Number(member.total_trainings) || 0,
+    currentStreak: Number(member.current_streak) || 0,
+    longestStreak: Number(member.longest_streak) || 0,
+      consistency: Number(member.consistency_this_month) || 0
+  };
+});
 
   // Process Ratings Data
   const ratingsData = data.teamMembers.map(member => ({
