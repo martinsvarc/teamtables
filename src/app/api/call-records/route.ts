@@ -217,7 +217,17 @@ export async function POST(request: Request) {
         ${data.assistant_name || ''},
         ${data.assistant_picture_url || ''},
         ${data.recording_url || ''},
-        ${data.call_date || new Date().toISOString()},
+${new Date().toLocaleString('en-US', {
+  weekday: 'short',
+  month: 'short',
+  day: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  timeZone: 'GMT',
+  hour12: false
+}) + ' GMT+0100 (GMT+01:00)'},       
         ${data.overall_performance || 0},
         ${data.engagement_score || 0},
         ${data.objection_handling_score || 0},
