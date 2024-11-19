@@ -58,6 +58,14 @@ interface TeamMember {
   avg_program: string;
   avg_closing: string;
   avg_effectiveness: string;
+  // Rating summaries with both formats
+  overall_summary?: string;
+  engagement_summary?: string;
+  objection_summary?: string;
+  information_summary?: string;
+  program_summary?: string;
+  closing_summary?: string;
+  effectiveness_summary?: string;
   ratings_overall_summary?: string;
   ratings_engagement_summary?: string;
   ratings_objection_summary?: string;
