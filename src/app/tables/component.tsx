@@ -53,6 +53,7 @@ interface TeamMember {
   total_trainings: string;
   current_streak: string;
   longest_streak: string;
+  consistency_this_month: string;
   avg_overall: string;
   avg_engagement: string;
   avg_objection: string;
