@@ -129,31 +129,31 @@ export async function GET(request: Request) {
         FROM streaks
         GROUP BY user_id
       ),
+      monthly_consistency AS (
+        SELECT 
+          cr.user_id,
+          COUNT(DISTINCT DATE(cr.call_date AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague')) as practice_days,
+          EXTRACT(DAY FROM CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague') as days_in_month,
+          ROUND(
+            (COUNT(DISTINCT DATE(cr.call_date AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague'))::numeric * 100.0) / 
+            EXTRACT(DAY FROM CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague')
+          ) as consistency_score
+        FROM call_records cr
+        WHERE 
+          team_id = ${teamId} AND
+          DATE_TRUNC('month', cr.call_date AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague') = 
+          DATE_TRUNC('month', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague')
+        GROUP BY cr.user_id
+      ),
       final_stats AS (
         SELECT DISTINCT
           d.*,
           COALESCE(us.current_streak, 0) as current_streak,
           COALESCE(us.longest_streak, 0) as longest_streak,
-          ROUND(
-            (COUNT(DISTINCT DATE(cr.call_date AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague'))::numeric / 
-             EXTRACT(DAY FROM CURRENT_DATE)::numeric * 100)
-          ) as consistency_this_month
+          COALESCE(mc.consistency_score, 0) as consistency_this_month
         FROM daily_stats d
-        LEFT JOIN call_records cr ON 
-          cr.user_id = d.user_id AND
-          DATE_TRUNC('month', cr.call_date AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague') = 
-          DATE_TRUNC('month', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Prague')
         LEFT JOIN user_streaks us ON d.user_id = us.user_id
-        GROUP BY 
-          d.user_id, d.user_name, d.user_picture_url, 
-          d.trainings_today, d.this_week, d.this_month,
-          d.total_trainings, d.avg_overall, d.avg_engagement,
-          d.avg_objection, d.avg_information, d.avg_program,
-          d.avg_closing, d.avg_effectiveness,
-          d.overall_summary, d.engagement_summary, d.objection_summary,
-          d.information_summary, d.program_summary, d.closing_summary,
-          d.effectiveness_summary,
-          us.current_streak, us.longest_streak
+        LEFT JOIN monthly_consistency mc ON d.user_id = mc.user_id
       )
       SELECT * FROM final_stats;
     `;
