@@ -1082,3 +1082,6 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
     `}</style>
   </>
 );
+};
+
+export default Component;
