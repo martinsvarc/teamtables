@@ -1,50 +1,37 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 
-const AutoHeightContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState('100vh');
+interface Props {
+  children: React.ReactNode;
+}
 
+const AutoHeightContainer: React.FC<Props> = ({ children }) => {
   useEffect(() => {
-    const updateHeight = () => {
-      if (containerRef.current) {
-        const contentHeight = containerRef.current.scrollHeight;
-        setHeight(`${contentHeight}px`);
-        window.parent.postMessage({ type: 'setHeight', height: contentHeight }, '*');
-      }
+    const handleResize = () => {
+      // Get the actual document height
+      const height = document.documentElement.scrollHeight;
+      // Send message to parent with current height
+      window.parent.postMessage({ type: 'setHeight', height }, '*');
     };
 
-    // Update on mount
-    updateHeight();
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
+    
+    // Set initial height
+    handleResize();
 
-    // Update on content change
-    const observer = new MutationObserver(updateHeight);
-    if (containerRef.current) {
-      observer.observe(containerRef.current, {
-        childList: true,
-        subtree: true
-      });
-    }
-
-    // Update on window resize
-    window.addEventListener('resize', updateHeight);
+    // Poll for changes in height for the first few seconds
+    const interval = setInterval(handleResize, 1000);
+    setTimeout(() => clearInterval(interval), 5000);
 
     return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', updateHeight);
+      window.removeEventListener('resize', handleResize);
+      clearInterval(interval);
     };
   }, []);
 
-  return (
-    <div 
-      ref={containerRef} 
-      style={{ minHeight: height }}
-      className="w-full bg-[#f0f1f7]"
-    >
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 };
 
 export default AutoHeightContainer;
