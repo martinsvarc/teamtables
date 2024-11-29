@@ -534,8 +534,9 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
     callLogsData: visibleCallLogsData
   });
 
-  return (
-<div className={`flex bg-[#f0f1f7] ${montserratFont.className}`}>
+ return (
+  <>
+    <div className={`flex bg-[#f0f1f7] ${montserratFont.className}`}>
       {/* Sidebar */}
       <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
         <SheetTrigger asChild>
@@ -574,14 +575,14 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
             <Card className={sectionStyle}>
               <div className={headerStyle}>
                 <div className="flex items-center gap-2 text-[#556bc7]">
-  <Image 
-    src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/incresing_chart_jivjlw.png" 
-    alt="Activity Chart" 
-    width={20} 
-    height={20} 
-  />
-  <h2 className="text-lg font-extrabold tracking-normal">Table Activity Team View</h2>
-</div>
+                  <Image 
+                    src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/incresing_chart_jivjlw.png" 
+                    alt="Activity Chart" 
+                    width={20} 
+                    height={20} 
+                  />
+                  <h2 className="text-lg font-extrabold tracking-normal">Table Activity Team View</h2>
+                </div>
                 <div className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -671,19 +672,18 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
               </div>
             </Card>
 
-            {/* We'll continue with Ratings View and Call Logs in the next parts */}
-{/* Ratings View */}
+            {/* Ratings View */}
             <Card className={sectionStyle}>
               <div className={headerStyle}>
                 <div className="flex items-center gap-2 text-[#51c1a9]">
-  <Image 
-    src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/star_icon_enqnvu.png" 
-    alt="Star Rating" 
-    width={20} 
-    height={20} 
-  />
-  <h2 className="text-lg font-extrabold">Ratings Team's View</h2>
-</div>
+                  <Image 
+                    src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/star_icon_enqnvu.png" 
+                    alt="Star Rating" 
+                    width={20} 
+                    height={20} 
+                  />
+                  <h2 className="text-lg font-extrabold">Ratings Team's View</h2>
+                </div>
                 <div className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -756,7 +756,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                           <ScoreCell 
                             score={user.overall} 
                             title="Overall Performance" 
-                            description={user.descriptions?.overall || 'No description available'} // Added fallback
+                            description={user.descriptions?.overall || 'No description available'}
                             color="[#51c1a9]" 
                           />
                         </td>
@@ -788,7 +788,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                           <ScoreCell 
                             score={user.program} 
                             title="Program Explanation" 
-                            description={user.descriptions?.program || 'No description available'} 
+                            description={user.descriptions?.program || 'No description available'}
                             color="[#51c1a9]" 
                           />
                         </td>
@@ -822,19 +822,18 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
               </div>
             </Card>
 
-            {/* Next we'll add the Call Logs table */}
-{/* Call Logs */}
+            {/* Call Logs */}
             <Card className={sectionStyle}>
               <div className={headerStyle}>
                 <div className="flex items-center gap-2 text-[#fbb350]">
-  <Image 
-    src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/Phone_icon_jhnzrh.png" 
-    alt="Phone" 
-    width={20} 
-    height={20} 
-  />
-  <h2 className="text-lg font-extrabold">Team Call Logs</h2>
-</div>
+                  <Image 
+                    src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/Phone_icon_jhnzrh.png" 
+                    alt="Phone" 
+                    width={20} 
+                    height={20} 
+                  />
+                  <h2 className="text-lg font-extrabold">Team Call Logs</h2>
+                </div>
                 <div className="flex gap-2">
                   <Popover>
                     <PopoverTrigger asChild>
@@ -1063,8 +1062,8 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
           </div>
         </ScrollArea>
       </div>
-    </div>,
-    <style jsx global key="styles">{`
+    </div>
+    <style jsx global>{`
       html, body {
         margin: 0;
         padding: 0;
@@ -1081,7 +1080,5 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
         height: auto !important;
       }
     `}</style>
-  );
-};
-
-export default Component;
+  </>
+);
