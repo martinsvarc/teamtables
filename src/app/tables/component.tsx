@@ -1064,7 +1064,6 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
         </ScrollArea>
       </div>
     </div>
-
 <style jsx global>{`
       html, body {
         margin: 0;
