@@ -33,7 +33,7 @@ const AutoHeightContainer: React.FC<Props> = ({ children }) => {
     setTimeout(() => {
       isAdjustingRef.current = false;
       clearInterval(interval);
-    }, 3000);
+    }, 1000);
 
     return () => {
       window.removeEventListener('resize', handleResize);
