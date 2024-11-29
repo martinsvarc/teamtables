@@ -1,14 +1,19 @@
 'use client'
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface Props {
   children: React.ReactNode;
 }
 
 const AutoHeightContainer: React.FC<Props> = ({ children }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isAdjustingRef = useRef(true);
+
   useEffect(() => {
     const handleResize = () => {
+      if (!isAdjustingRef.current) return;
+      
       // Get the actual document height
       const height = document.documentElement.scrollHeight;
       // Send message to parent with current height
@@ -18,16 +23,22 @@ const AutoHeightContainer: React.FC<Props> = ({ children }) => {
     // Add resize listener
     window.addEventListener('resize', handleResize);
     
-    // Set initial height
+    // Initial height adjustment
     handleResize();
 
-    // Poll for changes in height for the first few seconds
-    const interval = setInterval(handleResize, 1000);
-    setTimeout(() => clearInterval(interval), 5000);
+    // Poll for changes every 100ms for the first 3 seconds
+    const interval = setInterval(handleResize, 100);
+
+    // Stop adjusting height after 3 seconds
+    setTimeout(() => {
+      isAdjustingRef.current = false;
+      clearInterval(interval);
+    }, 3000);
 
     return () => {
       window.removeEventListener('resize', handleResize);
       clearInterval(interval);
+      isAdjustingRef.current = false;
     };
   }, []);
 
