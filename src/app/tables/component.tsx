@@ -4,6 +4,7 @@ import * as React from "react"
 import { DateRange } from "react-day-picker"
 import { useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
+import LoadingSpinner from './loading'
 import Image from 'next/image';
 import { useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -523,7 +524,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
   const visibleCallLogsData = showMoreCallLogs ? filteredCallLogsData : filteredCallLogsData.slice(0, 5);
 
   // Loading and error states
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <LoadingSpinner />;
   if (error) return <div>Error: {error}</div>;
   if (!data) return <div>No data available</div>;
 // ... (continuing from the previous part)
