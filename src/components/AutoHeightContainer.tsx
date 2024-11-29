@@ -1,7 +1,5 @@
 'use client'
-
 import React, { useEffect, useRef } from 'react';
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const AutoHeightContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -9,17 +7,23 @@ const AutoHeightContainer: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const updateHeight = () => {
       if (containerRef.current) {
-        const height = containerRef.current.scrollHeight;
-        window.parent.postMessage({ type: 'setHeight', height }, '*');
+        const contentHeight = containerRef.current.scrollHeight;
+        // Only update if height actually changed
+        if (contentHeight !== containerRef.current.clientHeight) {
+          window.parent.postMessage({ type: 'setHeight', height: contentHeight }, '*');
+        }
       }
     };
 
-    // Create ResizeObserver to watch for content changes
-    const resizeObserver = new ResizeObserver(() => {
-      updateHeight();
-    });
+    // Debounce the resize observer callback
+    let timeoutId: NodeJS.Timeout;
+    const debouncedUpdate = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(updateHeight, 100);
+    };
 
-    // Start observing the container
+    const resizeObserver = new ResizeObserver(debouncedUpdate);
+
     if (containerRef.current) {
       resizeObserver.observe(containerRef.current);
     }
@@ -27,8 +31,8 @@ const AutoHeightContainer: React.FC<{ children: React.ReactNode }> = ({ children
     // Initial height update
     updateHeight();
 
-    // Cleanup
     return () => {
+      clearTimeout(timeoutId);
       resizeObserver.disconnect();
     };
   }, []);
