@@ -9,49 +9,35 @@ interface Props {
 const AutoHeightContainer: React.FC<Props> = ({ children }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isAdjustingRef = useRef(true);
-  const lastHeightRef = useRef(0);
-
-  const updateHeight = () => {
-    if (!isAdjustingRef.current) return;
-    
-    const height = document.documentElement.scrollHeight;
-    if (height !== lastHeightRef.current) {
-      lastHeightRef.current = height;
-      window.parent.postMessage({ type: 'setHeight', height }, '*');
-    }
-  };
 
   useEffect(() => {
-    // First update: immediate
-    updateHeight();
-
-    // Second update: after first paint
-    requestAnimationFrame(() => {
-      updateHeight();
-
-      // Third update: after a brief delay for layout
-      setTimeout(() => {
-        updateHeight();
-        isAdjustingRef.current = false;
-      }, 500);
-    });
-
-    // Listen for content updates
-    const handleContentUpdate = () => {
-      isAdjustingRef.current = true;
-      requestAnimationFrame(() => {
-        updateHeight();
-        setTimeout(() => {
-          updateHeight();
-          isAdjustingRef.current = false;
-        }, 100);
-      });
+    const handleResize = () => {
+      if (!isAdjustingRef.current) return;
+      
+      // Get the actual document height
+      const height = document.documentElement.scrollHeight;
+      // Send message to parent with current height
+      window.parent.postMessage({ type: 'setHeight', height }, '*');
     };
 
-    window.addEventListener('content-update', handleContentUpdate);
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
     
+    // Initial height adjustment
+    handleResize();
+
+    // Poll for changes every 100ms for the first 3 seconds
+    const interval = setInterval(handleResize, 100);
+
+    // Stop adjusting height after 3 seconds
+    setTimeout(() => {
+      isAdjustingRef.current = false;
+      clearInterval(interval);
+    }, 1000);
+
     return () => {
-      window.removeEventListener('content-update', handleContentUpdate);
+      window.removeEventListener('resize', handleResize);
+      clearInterval(interval);
       isAdjustingRef.current = false;
     };
   }, []);
