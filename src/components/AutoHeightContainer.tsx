@@ -7,19 +7,15 @@ const AutoHeightContainer: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const updateHeight = () => {
       if (containerRef.current) {
-        const contentHeight = containerRef.current.scrollHeight;
-        // Only update if height actually changed
-        if (contentHeight !== containerRef.current.clientHeight) {
-          window.parent.postMessage({ type: 'setHeight', height: contentHeight }, '*');
-        }
+        // Add some padding to the height to ensure content is fully visible
+        const contentHeight = containerRef.current.scrollHeight + 32;
+        window.parent.postMessage({ type: 'setHeight', height: contentHeight }, '*');
       }
     };
 
-    // Debounce the resize observer callback
-    let timeoutId: NodeJS.Timeout;
+    // Update height on both load and resize
     const debouncedUpdate = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(updateHeight, 100);
+      requestAnimationFrame(updateHeight);
     };
 
     const resizeObserver = new ResizeObserver(debouncedUpdate);
@@ -28,17 +24,16 @@ const AutoHeightContainer: React.FC<{ children: React.ReactNode }> = ({ children
       resizeObserver.observe(containerRef.current);
     }
 
-    // Initial height update
-    updateHeight();
+    // Initial height setup
+    debouncedUpdate();
 
     return () => {
-      clearTimeout(timeoutId);
       resizeObserver.disconnect();
     };
   }, []);
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-[#f0f1f7]">
+    <div ref={containerRef} className="w-full bg-[#f0f1f7]">
       <div className="relative w-full">
         <div className="max-w-7xl mx-auto p-4">
           {children}
