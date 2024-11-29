@@ -1063,8 +1063,8 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
           </div>
         </ScrollArea>
       </div>
-    </div>
-<style jsx global>{`
+    </div>,
+    <style jsx global key="styles">{`
       html, body {
         margin: 0;
         padding: 0;
