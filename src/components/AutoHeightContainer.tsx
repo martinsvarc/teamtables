@@ -1,72 +1,48 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-interface Props {
-  children: React.ReactNode;
-}
-
-const MIN_HEIGHT = 800; // Minimum height in pixels
-
-const AutoHeightContainer: React.FC<Props> = ({ children }) => {
+const AutoHeightContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const lastHeight = useRef<number>(MIN_HEIGHT);
+  const [height, setHeight] = useState('100vh');
 
   useEffect(() => {
     const updateHeight = () => {
       if (containerRef.current) {
-        // Get the content height and ensure it's at least MIN_HEIGHT
-        let newHeight = Math.max(
-          containerRef.current.scrollHeight,
-          MIN_HEIGHT
-        );
-
-        // Add padding to prevent scrollbar
-        newHeight += 100;
-
-        // Only update if height has changed significantly (more than 10px)
-        if (Math.abs(newHeight - lastHeight.current) > 10) {
-          lastHeight.current = newHeight;
-          window.parent.postMessage({ type: 'setHeight', height: newHeight }, '*');
-        }
+        const contentHeight = containerRef.current.scrollHeight;
+        setHeight(`${contentHeight}px`);
+        window.parent.postMessage({ type: 'setHeight', height: contentHeight }, '*');
       }
     };
 
-    // Delayed update to ensure content is rendered
-    const delayedUpdate = () => {
-      setTimeout(updateHeight, 100);
-    };
+    // Update on mount
+    updateHeight();
 
-    // Create ResizeObserver to watch for content changes
-    const resizeObserver = new ResizeObserver(() => {
-      delayedUpdate();
-    });
-
-    // Start observing the container
+    // Update on content change
+    const observer = new MutationObserver(updateHeight);
     if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
+      observer.observe(containerRef.current, {
+        childList: true,
+        subtree: true
+      });
     }
 
-    // Set initial height
-    delayedUpdate();
+    // Update on window resize
+    window.addEventListener('resize', updateHeight);
 
-    // Cleanup
     return () => {
-      resizeObserver.disconnect();
+      observer.disconnect();
+      window.removeEventListener('resize', updateHeight);
     };
   }, []);
 
   return (
     <div 
       ref={containerRef} 
+      style={{ minHeight: height }}
       className="w-full bg-[#f0f1f7]"
-      style={{ minHeight: MIN_HEIGHT }}
     >
-      <div className="w-full h-full">
-        <div className="max-w-[1400px] mx-auto p-4">
-          {children}
-        </div>
-      </div>
+      {children}
     </div>
   );
 };
