@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import Component from './component';
 import { headers } from 'next/headers';
+import AutoHeightContainer from '@/components/AutoHeightContainer';
 
 async function getData() {
   try {
@@ -38,6 +39,12 @@ async function getData() {
     }
 
     const data = await response.json();
+    console.log('API Response Data:', {
+      hasData: !!data,
+      teamMembersCount: data?.teamMembers?.length,
+      callsCount: data?.recentCalls?.length,
+      rawData: data
+    });
     return data;
   } catch (error) {
     console.error('getData Error:', error);
@@ -50,19 +57,38 @@ async function getData() {
 }
 
 export default async function Page() {
-  const teamData = await getData();
-  
-  return (
-    <div className="min-h-screen bg-[#f0f1f7]">
-      <Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-lg font-semibold">Loading...</div>
+  try {
+    const teamData = await getData();
+    console.log('Page Data:', {
+      hasData: !!teamData,
+      teamMembersCount: teamData?.teamMembers?.length,
+      callsCount: teamData?.recentCalls?.length,
+      rawData: teamData
+    });
+    
+    return (
+      <AutoHeightContainer>
+        <div className="min-h-screen w-full">
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-screen">
+              <div className="text-lg font-semibold">Loading...</div>
+            </div>
+          }>
+            <Component initialData={teamData} />
+          </Suspense>
         </div>
-      }>
-        <Component initialData={teamData} />
-      </Suspense>
-    </div>
-  );
+      </AutoHeightContainer>
+    );
+  } catch (error) {
+    console.error('Page Error:', error);
+    return (
+      <div className="flex items-center justify-center">
+        <div className="text-lg font-semibold text-red-500">
+          Something went wrong. Please try again later.
+        </div>
+      </div>
+    );
+  }
 }
 
 export const dynamic = 'force-dynamic';
