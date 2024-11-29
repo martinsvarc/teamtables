@@ -536,7 +536,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
 
  return (
   <>
-    <div className={`flex bg-[#f0f1f7] ${montserratFont.className}`}>
+    <div className={`flex bg-[#f0f1f7] h-screen overflow-hidden ${montserratFont.className}`}>
       {/* Sidebar */}
       <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
         <SheetTrigger asChild>
@@ -568,8 +568,8 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
         </SheetContent>
       </Sheet>
 
-      <div className="flex-1 overflow-auto p-4 font-medium">
-        <ScrollArea>
+      <div className="flex-1 h-screen overflow-auto p-4 font-medium">
+  <ScrollArea className="h-full">
           <div className="space-y-4">
             {/* Activity View */}
             <Card className={sectionStyle}>
@@ -1064,22 +1064,21 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
       </div>
     </div>
     <style jsx global>{`
-      html, body {
-        margin: 0;
-        padding: 0;
-        height: auto !important;
-        min-height: 100%;
-      }
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
 
-      #__next {
-        height: auto !important;
-        min-height: 100%;
-      }
+  #__next {
+    height: 100%;
+  }
 
-      .scroll-area-viewport {
-        height: auto !important;
-      }
-    `}</style>
+  .scroll-area-viewport {
+    height: 100% !important;
+  }
+`}</style>
   </>
 );
 };
