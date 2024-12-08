@@ -64,13 +64,13 @@ export async function GET(request: Request) {
             THEN call_date 
           END) as this_month,
           COUNT(*) as total_trainings,
-          ROUND(AVG(overall_performance::numeric)) as avg_overall,
-          ROUND(AVG(engagement_score::numeric)) as avg_engagement,
-          ROUND(AVG(objection_handling_score::numeric)) as avg_objection,
-          ROUND(AVG(information_gathering_score::numeric)) as avg_information,
-          ROUND(AVG(program_explanation_score::numeric)) as avg_program,
-          ROUND(AVG(closing_score::numeric)) as avg_closing,
-          ROUND(AVG(effectiveness_score::numeric)) as avg_effectiveness,
+          ROUND(AVG(NULLIF(overall_performance, 'N/A')::numeric)) as avg_overall,
+          ROUND(AVG(NULLIF(engagement_score, 'N/A')::numeric)) as avg_engagement,
+          ROUND(AVG(NULLIF(objection_handling_score, 'N/A')::numeric)) as avg_objection,
+          ROUND(AVG(NULLIF(information_gathering_score, 'N/A')::numeric)) as avg_information,
+          ROUND(AVG(NULLIF(program_explanation_score, 'N/A')::numeric)) as avg_program,
+          ROUND(AVG(NULLIF(closing_score, 'N/A')::numeric)) as avg_closing,
+          ROUND(AVG(NULLIF(effectiveness_score, 'N/A')::numeric)) as avg_effectiveness,
           lud.ratings_overall_summary as overall_summary,
           lud.ratings_engagement_summary as engagement_summary,
           lud.ratings_objection_summary as objection_summary,
@@ -155,7 +155,32 @@ export async function GET(request: Request) {
         LEFT JOIN user_streaks us ON d.user_id = us.user_id
         LEFT JOIN monthly_consistency mc ON d.user_id = mc.user_id
       )
-      SELECT * FROM final_stats;
+      SELECT 
+        user_id,
+        user_name,
+        user_picture_url,
+        COALESCE(trainings_today, 0) as trainings_today,
+        COALESCE(this_week, 0) as this_week,
+        COALESCE(this_month, 0) as this_month,
+        COALESCE(total_trainings, 0) as total_trainings,
+        COALESCE(avg_overall, 0) as avg_overall,
+        COALESCE(avg_engagement, 0) as avg_engagement,
+        COALESCE(avg_objection, 0) as avg_objection,
+        COALESCE(avg_information, 0) as avg_information,
+        COALESCE(avg_program, 0) as avg_program,
+        COALESCE(avg_closing, 0) as avg_closing,
+        COALESCE(avg_effectiveness, 0) as avg_effectiveness,
+        COALESCE(current_streak, 0) as current_streak,
+        COALESCE(longest_streak, 0) as longest_streak,
+        COALESCE(consistency_this_month, 0) as consistency_this_month,
+        overall_summary,
+        engagement_summary,
+        objection_summary,
+        information_summary,
+        program_summary,
+        closing_summary,
+        effectiveness_summary
+      FROM final_stats;
     `;
 
     const { rows: recentCalls } = await sql`
@@ -176,13 +201,13 @@ export async function GET(request: Request) {
         cr.assistant_picture_url,
         cr.recording_url,
         cr.call_date,
-        cr.overall_performance,
-        cr.engagement_score,
-        cr.objection_handling_score,
-        cr.information_gathering_score,
-        cr.program_explanation_score,
-        cr.closing_score,
-        cr.effectiveness_score,
+        COALESCE(NULLIF(cr.overall_performance, 'N/A'), '0') as overall_performance,
+        COALESCE(NULLIF(cr.engagement_score, 'N/A'), '0') as engagement_score,
+        COALESCE(NULLIF(cr.objection_handling_score, 'N/A'), '0') as objection_handling_score,
+        COALESCE(NULLIF(cr.information_gathering_score, 'N/A'), '0') as information_gathering_score,
+        COALESCE(NULLIF(cr.program_explanation_score, 'N/A'), '0') as program_explanation_score,
+        COALESCE(NULLIF(cr.closing_score, 'N/A'), '0') as closing_score,
+        COALESCE(NULLIF(cr.effectiveness_score, 'N/A'), '0') as effectiveness_score,
         cr.overall_performance_text,
         cr.engagement_text,
         cr.objection_handling_text,
@@ -201,17 +226,35 @@ export async function GET(request: Request) {
       teamMembers: teamStats || [],
       currentUser: teamStats?.find(member => member.user_id === memberId) || null,
       recentCalls: recentCalls || []
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
+      }
     });
 
   } catch (error: any) {
-    console.error('API Route Error:', error);
+    console.error('API Route Error:', {
+      message: error?.message,
+      stack: error?.stack,
+      details: error?.details,
+      code: error?.code
+    });
+    
     return NextResponse.json({
       error: 'Failed to fetch data',
       details: error?.message || 'Unknown error',
+      errorCode: error?.code,
       teamMembers: [],
       currentUser: null,
       recentCalls: []
-    }, { status: 500 });
+    }, { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
+      }
+    });
   }
 }
 
@@ -226,6 +269,7 @@ export async function POST(request: Request) {
         status: 400,
         headers: {
           'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
         }
       });
     }
@@ -301,18 +345,27 @@ export async function POST(request: Request) {
       status: 201,
       headers: {
         'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
       }
     });
 
   } catch (error: any) {
-    console.error('API Route Error:', error);
+    console.error('API Route Error:', {
+      message: error?.message,
+      stack: error?.stack,
+      details: error?.details,
+      code: error?.code
+    });
+    
     return NextResponse.json({
       error: 'Failed to create record',
-      details: error?.message || 'Unknown error'
+      details: error?.message || 'Unknown error',
+      errorCode: error?.code
     }, { 
       status: 500,
       headers: {
         'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
       }
     });
   }
