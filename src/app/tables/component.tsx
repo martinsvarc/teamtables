@@ -577,7 +577,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
               <div className={headerStyle}>
                 <div className="flex items-center gap-2 text-[#000000]">
                   <Image 
-                    src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/incresing_chart_jivjlw.png" 
+                    src="https://res.cloudinary.com/drkudvyog/image/upload/v1733765915/Table_Activity_Team_View_icon_duha_zby14j.png" 
                     alt="Activity Chart" 
                     width={20} 
                     height={20} 
@@ -676,9 +676,9 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
             {/* Ratings View */}
             <Card className={sectionStyle}>
               <div className={headerStyle}>
-                <div className="flex items-center gap-2 text-[#51c1a9]">
+                <div className="flex items-center gap-2 text-[#000000]">
                   <Image 
-                    src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/star_icon_enqnvu.png" 
+                    src="https://res.cloudinary.com/drkudvyog/image/upload/v1733765915/Rating_s_Teams_View_icon_duha_wdkysv.png" 
                     alt="Star Rating" 
                     width={20} 
                     height={20} 
@@ -826,9 +826,9 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
             {/* Call Logs */}
             <Card className={sectionStyle}>
               <div className={headerStyle}>
-                <div className="flex items-center gap-2 text-[#fbb350]">
+                <div className="flex items-center gap-2 text-[#000000]">
                   <Image 
-                    src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/Phone_icon_jhnzrh.png" 
+                    src="https://res.cloudinary.com/drkudvyog/image/upload/v1733765915/Team_Call_Logs_icon_duha_d0wkpd.png" 
                     alt="Phone" 
                     width={20} 
                     height={20} 
@@ -838,7 +838,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                 <div className="flex gap-2">
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
+                      <Button size="sm" className={`${buttonStyle} bg-gradient-to-r from-[#5b06be] to-[#f8b922]`}>
                         <CalendarIcon className="h-4 w-4" />
                         {formatDateRange(date)}
                       </Button>
