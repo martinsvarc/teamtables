@@ -587,10 +587,10 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                 <div className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-[#000000]`}>
-                        <ArrowUpDown className="h-4 w-4" />
-                        Sort
-                      </Button>
+                      <Button size="sm" className={`${buttonStyle} bg-gradient-to-r from-[#5b06be] to-[#f8b922]`}>
+                          <ArrowUpDown className="h-4 w-4" />
+                          Sort
+                        </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuItem onClick={() => setActivitySort({ type: 'standard', direction: 'asc' })}>
