@@ -782,7 +782,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={user.information} 
                             title="Information Gathering" 
                             description={user.descriptions?.information || 'No description available'}
-                            color="[#51c1a9]" 
+                            color="[#5b06be]" 
                           />
                         </td>
                         <td className="p-2 text-center">
@@ -790,7 +790,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={user.program} 
                             title="Program Explanation" 
                             description={user.descriptions?.program || 'No description available'}
-                            color="[#51c1a9]" 
+                            color="[#5b06be]" 
                           />
                         </td>
                         <td className="p-2 text-center">
@@ -798,7 +798,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={user.closing} 
                             title="Closing Skills" 
                             description={user.descriptions?.closing || 'No description available'}
-                            color="[#51c1a9]" 
+                            color="[#5b06be]" 
                           />
                         </td>
                         <td className="p-2 text-center">
@@ -806,7 +806,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={user.effectiveness} 
                             title="Effectiveness" 
                             description={user.descriptions?.effectiveness || 'No description available'}
-                            color="[#51c1a9]" 
+                            color="[#5b06be]" 
                           />
                         </td>
                       </tr>
@@ -980,7 +980,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button variant="ghost" size="sm" className="h-8 w-8 p-0 mx-auto">
-                                <PlayCircle className="h-5 w-5 text-[#fbb350]" />
+                                <PlayCircle className="h-5 w-5 text-[#5b06be]" />
                               </Button>
                             </DialogTrigger>
                             <DialogContent>
@@ -1020,7 +1020,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={log.information_gathering_score} 
                             title="Information Gathering" 
                             description={log.information_gathering_text || 'No description available'}
-                            color="[#fbb350]" 
+                            color="[#5b06be]" 
                           />
                         </td>
                         <td className="p-2 text-center">
@@ -1028,7 +1028,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={log.program_explanation_score} 
                             title="Program Explanation" 
                             description={log.program_explanation_text || 'No description available'}
-                            color="[#fbb350]" 
+                            color="[#5b06be]" 
                           />
                         </td>
                         <td className="p-2 text-center">
@@ -1036,7 +1036,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={log.closing_score} 
                             title="Closing Skills" 
                             description={log.closing_text || 'No description available'}
-                            color="[#fbb350]" 
+                            color="[#5b06be]" 
                           />
                         </td>
                         <td className="p-2 text-center">
@@ -1044,7 +1044,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={log.effectiveness_score} 
                             title="Effectiveness" 
                             description={log.effectiveness_text || 'No description available'}
-                            color="[#fbb350]" 
+                            color="[#5b06be]" 
                           />
                         </td>
                       </tr>
