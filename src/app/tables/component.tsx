@@ -996,7 +996,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={log.overall_performance} 
                             title="Overall Performance" 
                             description={log.overall_performance_text || 'No description available'}
-                            color="[#fbb350]" 
+                            color="[#5b06be]" 
                           />
                         </td>
                         <td className="p-2 text-center">
@@ -1004,7 +1004,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={log.engagement_score} 
                             title="Engagement" 
                             description={log.engagement_text || 'No description available'}
-                            color="[#fbb350]" 
+                            color="bg-gradient-to-r from-[#5b06be] to-[#f8b922]" 
                           />
                         </td>
                         <td className="p-2 text-center">
