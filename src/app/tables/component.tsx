@@ -575,7 +575,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
             {/* Activity View */}
             <Card className={sectionStyle}>
               <div className={headerStyle}>
-                <div className="flex items-center gap-2 text-[#556bc7]">
+                <div className="flex items-center gap-2 text-[#000000]">
                   <Image 
                     src="https://res.cloudinary.com/dmbzcxhjn/image/upload/v1732010593/incresing_chart_jivjlw.png" 
                     alt="Activity Chart" 
@@ -612,7 +612,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                   </DropdownMenu>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-[#556bc7]`}>
+                      <Button size="sm" className={`${buttonStyle} bg-gradient-to-r from-[#5b06be] to-[#f8b922]`}>
                         <Search className="h-4 w-4" />
                         Search
                       </Button>
@@ -688,7 +688,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                 <div className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-[#51c1a9]`}>
+                      <Button size="sm" className={`${buttonStyle} bg-gradient-to-r from-[#5b06be] to-[#f8b922]`}>
                         <ArrowUpDown className="h-4 w-4" />
                         Sort
                       </Button>
@@ -713,7 +713,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                   </DropdownMenu>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-[#51c1a9]`}>
+                      <Button size="sm" className={`${buttonStyle} bg-gradient-to-r from-[#5b06be] to-[#f8b922]`}>
                         <Search className="h-4 w-4" />
                         Search
                       </Button>
@@ -758,7 +758,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={user.overall} 
                             title="Overall Performance" 
                             description={user.descriptions?.overall || 'No description available'}
-                            color="[#51c1a9]" 
+                            color="[#000000]" 
                           />
                         </td>
                         <td className="p-2 text-center">
@@ -766,7 +766,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={user.engagement} 
                             title="Engagement" 
                             description={user.descriptions?.engagement || 'No description available'}
-                            color="[#51c1a9]" 
+                            color="[#000000]" 
                           />
                         </td>
                         <td className="p-2 text-center">
@@ -774,7 +774,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                             score={user.objection} 
                             title="Objection Handling" 
                             description={user.descriptions?.objection || 'No description available'}
-                            color="[#51c1a9]" 
+                            color="[#000000]" 
                           />
                         </td>
                         <td className="p-2 text-center">
@@ -900,7 +900,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
+                      <Button size="sm" className={`${buttonStyle} bg-gradient-to-r from-[#5b06be] to-[#f8b922]`}>
                         <ArrowUpDown className="h-4 w-4" />
                         Sort
                       </Button>
@@ -926,7 +926,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
 
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-[#fbb350]`}>
+                      <Button size="sm" className={`${buttonStyle} bg-gradient-to-r from-[#5b06be] to-[#f8b922]`}>
                         <Search className="h-4 w-4" />
                         Search
                       </Button>
