@@ -39,8 +39,8 @@ export default function LoadingSpinner() {
           <Image 
             src="https://res.cloudinary.com/drkudvyog/image/upload/v1733356221/Colors_logo_gawxfo.png"
             alt="AI Logo"
-            width={48}
-            height={48}
+            width={24}
+            height={24}
             className="object-contain"
             priority
           />
