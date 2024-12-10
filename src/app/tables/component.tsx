@@ -658,6 +658,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                     ))}
                   </tbody>
                 </table>
+                </div>
                 <button
                   className="flex w-full items-center justify-center gap-2 p-2 text-sm text-gray-500 hover:bg-gray-50"
                   onClick={() => setShowMoreActivity(!showMoreActivity)}
@@ -809,6 +810,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                     ))}
                   </tbody>
                 </table>
+                </div>
                 <button
                   className="flex w-full items-center justify-center gap-2 p-2 text-sm text-gray-500 hover:bg-gray-50"
                   onClick={() => setShowMoreRatings(!showMoreRatings)}
@@ -1048,6 +1050,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                     ))}
                   </tbody>
                 </table>
+                </div>
                 <button
                   className="flex w-full items-center justify-center gap-2 p-2 text-sm text-gray-500 hover:bg-gray-50"
                   onClick={() => setShowMoreCallLogs(!showMoreCallLogs)}
