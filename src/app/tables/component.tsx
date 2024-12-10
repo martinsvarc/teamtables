@@ -700,10 +700,10 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                         Users (Z-A)
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setRatingsSort({ type: 'effectiveness', direction: 'desc' })}>
-                        Overall Effectiveness (highest first)
+                        Effectiveness (highest first)
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setRatingsSort({ type: 'effectiveness', direction: 'asc' })}>
-                        Overall Effectiveness (lowest first)
+                        Effectiveness (lowest first)
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -737,7 +737,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                       <th className="p-2 text-center font-extrabold">Information Gathering</th>
                       <th className="p-2 text-center font-extrabold">Program Explanation</th>
                       <th className="p-2 text-center font-extrabold">Closing Skills</th>
-                      <th className="p-2 text-center font-extrabold">Overall Effectiveness</th>
+                      <th className="p-2 text-center font-extrabold">Effectiveness</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -955,7 +955,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                       <th className="p-2 text-center font-extrabold">Information Gathering</th>
                       <th className="p-2 text-center font-extrabold">Program Explanation</th>
                       <th className="p-2 text-center font-extrabold">Closing Skills</th>
-                      <th className="p-2 text-center font-extrabold">Overall Effectiveness</th>
+                      <th className="p-2 text-center font-extrabold">Effectiveness</th>
                     </tr>
                   </thead>
                   <tbody>
