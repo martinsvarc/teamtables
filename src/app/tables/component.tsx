@@ -198,21 +198,16 @@ const formatDateRange = (dateRange: DateRange | undefined) => {
   return `${from.toLocaleDateString()} - ${to.toLocaleDateString()}`;
 };
 
-// Sub-components
 const ScoreCell: React.FC<ScoreCellProps> = ({ score, description, title, color }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="px-2 py-2 text-center hover:cursor-pointer group w-full"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          className="px-2 py-2 text-center w-full group"
         >
-          <span className={`inline-flex items-center gap-1 ${isHovered ? `text-${color}` : ''}`}>
-            {score}/100
-            {isHovered && <Info className={`h-4 w-4 text-${color}`} />}
+          <span className="inline-flex items-center gap-1 transition-colors">
+            <span className={`group-hover:text-${color}`}>{score}/100</span>
+            <Info className={`h-4 w-4 group-hover:text-${color}`} />
           </span>
         </button>
       </PopoverTrigger>
@@ -518,10 +513,9 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
   // Get processed data
   const { filteredActivityData, filteredRatingsData, filteredCallLogsData } = processTeamData();
 
-  // Visible data
-  const visibleActivityData = showMoreActivity ? filteredActivityData : filteredActivityData.slice(0, 5);
-  const visibleRatingsData = showMoreRatings ? filteredRatingsData : filteredRatingsData.slice(0, 5);
-  const visibleCallLogsData = showMoreCallLogs ? filteredCallLogsData : filteredCallLogsData.slice(0, 5);
+  const visibleActivityData = showMoreActivity ? filteredActivityData.slice(0, 15) : filteredActivityData.slice(0, 5);
+  const visibleRatingsData = showMoreRatings ? filteredRatingsData.slice(0, 15) : filteredRatingsData.slice(0, 5);
+  const visibleCallLogsData = showMoreCallLogs ? filteredCallLogsData.slice(0, 15) : filteredCallLogsData.slice(0, 5);
 
   // Loading and error states
   if (isLoading) return <LoadingSpinner />;
@@ -629,7 +623,8 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <div className="table-container">
+                  <table className="w-full">
                   <thead>
                     <tr className="border-b text-sm text-gray-500">
                       <th className="p-2 text-left font-extrabold">Users</th>
@@ -730,7 +725,8 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <div className="table-container">
+                  <table className="w-full">
                   <thead>
                     <tr className="border-b text-sm text-gray-500">
                       <th className="p-2 text-left font-extrabold">Users</th>
@@ -943,7 +939,8 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <div className="table-container">
+                  <table className="w-full">
                   <thead>
                     <tr className="border-b text-sm text-gray-500">
                       <th className="p-2 text-left font-extrabold">Users</th>
@@ -1089,6 +1086,31 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
     left: 0;
     right: 0;
     bottom: 0;
+  }
+
+  .table-container {
+    max-height: calc(48px * 15); /* 48px is approximate height of each row */
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #5b06be #f0f0f0;
+  }
+
+  .table-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .table-container::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 4px;
+  }
+
+  .table-container::-webkit-scrollbar-thumb {
+    background: #5b06be;
+    border-radius: 4px;
+  }
+
+  .table-container::-webkit-scrollbar-thumb:hover {
+    background: #4a05a0;
   }
 `}</style>
   </>
