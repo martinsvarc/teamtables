@@ -579,9 +579,9 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                   <h2 className="text-lg font-extrabold tracking-normal">Table Activity Team View</h2>
                 </div>
                 <div className="flex gap-2">
-                 <DropdownMenu>
+                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923436/Sort_icon_duha_askm6d.png" 
                           alt="Sort"
@@ -610,7 +610,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                   </DropdownMenu>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923435/Search_icon_duha_hshj5m.png" 
                           alt="Search"
@@ -692,7 +692,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                 <div className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923436/Sort_icon_duha_askm6d.png" 
                           alt="Sort"
@@ -721,7 +721,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                   </DropdownMenu>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923435/Search_icon_duha_hshj5m.png" 
                           alt="Search"
@@ -852,7 +852,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                 <div className="flex gap-2">
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733925261/Calendar_icon_duha_iecanm.png" 
                           alt="Calendar"
@@ -915,11 +915,14 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                       </div>
                     </PopoverContent>
                   </Popover>
-
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-gradient-to-r from-[#5b06be] to-[#f8b922]`}>
-                        <ArrowUpDown className="h-4 w-4" />
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
+                        <img 
+                          src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923436/Sort_icon_duha_askm6d.png" 
+                          alt="Sort"
+                          className="h-4 w-4"
+                        />
                         Sort
                       </Button>
                     </DropdownMenuTrigger>
@@ -941,11 +944,14 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-gradient-to-r from-[#5b06be] to-[#f8b922]`}>
-                        <Search className="h-4 w-4" />
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
+                        <img 
+                          src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923435/Search_icon_duha_hshj5m.png" 
+                          alt="Search"
+                          className="h-4 w-4"
+                        />
                         Search
                       </Button>
                     </PopoverTrigger>
