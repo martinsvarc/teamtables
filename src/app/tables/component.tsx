@@ -581,7 +581,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                 <div className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white hover:bg-[#f3ebff]`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923436/Sort_icon_duha_askm6d.png" 
                           alt="Sort"
