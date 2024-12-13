@@ -581,7 +581,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                 <div className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white text-black hover:bg-[#f3ebff]`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black hover:bg-[#c2c2c2]`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923436/Sort_icon_duha_askm6d.png" 
                           alt="Sort"
@@ -610,7 +610,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                   </DropdownMenu>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black hover:bg-[#c2c2c2]`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923435/Search_icon_duha_hshj5m.png" 
                           alt="Search"
@@ -692,7 +692,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                 <div className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black hover:bg-[#c2c2c2]`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923436/Sort_icon_duha_askm6d.png" 
                           alt="Sort"
@@ -721,7 +721,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                   </DropdownMenu>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black hover:bg-[#c2c2c2]`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923435/Search_icon_duha_hshj5m.png" 
                           alt="Search"
@@ -852,7 +852,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                 <div className="flex gap-2">
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black hover:bg-[#c2c2c2]`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733925261/Calendar_icon_duha_iecanm.png" 
                           alt="Calendar"
@@ -917,7 +917,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                   </Popover>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black hover:bg-[#c2c2c2]`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923436/Sort_icon_duha_askm6d.png" 
                           alt="Sort"
@@ -946,7 +946,7 @@ const callLogsData = Array.isArray(data.recentCalls) ? data.recentCalls
                   </DropdownMenu>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className={`${buttonStyle} bg-white text-black`}>
+                      <Button size="sm" className={`${buttonStyle} bg-white text-black hover:bg-[#c2c2c2]`}>
                         <img 
                           src="https://res.cloudinary.com/drkudvyog/image/upload/v1733923435/Search_icon_duha_hshj5m.png" 
                           alt="Search"
